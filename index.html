@@ -17,8 +17,18 @@
 </head>
 <body class="h-screen w-screen overflow-hidden flex flex-col bg-gray-100 font-sans">
 
+    <!-- SCHERMATA MANUTENZIONE GLOBALE -->
+    <div id="maintenance-screen" class="fixed inset-0 z-50 bg-gray-900 text-white hidden flex-col items-center justify-center p-6 text-center">
+        <div class="w-20 h-20 bg-yellow-500/20 text-yellow-500 rounded-full flex items-center justify-center mb-4">
+            <i data-lucide="wrench" class="w-10 h-10"></i>
+        </div>
+        <h1 class="text-3xl font-bold mb-2">Sito in Manutenzione</h1>
+        <p class="text-gray-400 max-w-md text-sm mb-6">ALBACORECHAT è temporaneamente chiusa per manutenzione straordinaria. Torneremo online al più presto!</p>
+        <button onclick="checkMaintenanceMode()" class="bg-gray-800 hover:bg-gray-700 text-gray-300 text-xs px-4 py-2 rounded-lg transition border border-gray-700">Riprova accesso</button>
+    </div>
+
     <!-- OVERLAY BLOCCO GEOLOCALIZZAZIONE -->
-    <div id="geo-modal" class="fixed inset-0 z-50 bg-black/70 flex items-center justify-center p-4">
+    <div id="geo-modal" class="fixed inset-0 z-40 bg-black/70 flex items-center justify-center p-4">
         <div class="bg-white rounded-2xl max-w-md w-full p-6 text-center shadow-2xl">
             <div class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4 text-green-600">
                 <i data-lucide="map-pin" class="w-8 h-8"></i>
@@ -35,7 +45,7 @@
     </div>
 
     <!-- MODALE AUTENTICAZIONE -->
-    <div id="auth-modal" class="fixed inset-0 z-40 bg-black/70 hidden items-center justify-center p-4">
+    <div id="auth-modal" class="fixed inset-0 z-30 bg-black/70 hidden items-center justify-center p-4">
         <div class="bg-white rounded-2xl max-w-md w-full p-8 shadow-2xl flex flex-col">
             <div class="text-center mb-6">
                 <img src="logo.png" alt="Logo AlbaCore" class="h-16 w-auto object-contain mx-auto mb-2">
@@ -89,8 +99,35 @@
     </div>
 
     <!-- INTERFACCIA PRINCIPALE DELLA CHAT -->
-    <div id="app-container" class="hidden flex h-full w-full max-w-7xl mx-auto bg-white shadow-2xl my-auto rounded-none md:rounded-xl overflow-hidden border border-gray-300">
+    <div id="app-container" class="hidden flex h-full w-full max-w-7xl mx-auto bg-white shadow-2xl my-auto rounded-none md:rounded-xl overflow-hidden border border-gray-300 relative">
         
+        <!-- PANNELLO ADMIN (Riservato) -->
+        <div id="admin-panel" class="absolute inset-0 bg-white z-30 flex flex-col transition-transform duration-300 transform -translate-x-full">
+            <div class="p-4 bg-gray-900 text-white flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                    <button onclick="closeAdminPanel()" class="hover:bg-gray-800 p-1 rounded-full"><i data-lucide="arrow-left" class="w-6 h-6"></i></button>
+                    <h2 class="font-bold text-lg">Pannello Amministratore</h2>
+                </div>
+                <span class="text-xs bg-red-500/20 text-red-400 px-2 py-1 rounded font-mono">ADMIN ACCESS</span>
+            </div>
+            <div class="flex-1 overflow-y-auto p-6 space-y-6 bg-gray-50">
+                <div class="bg-white p-4 rounded-xl border shadow-sm">
+                    <h3 class="text-sm font-bold text-gray-800 mb-1">Stato della Piattaforma</h3>
+                    <p class="text-xs text-gray-500 mb-4">Gestisci lo stato globale di operatività del sito.</p>
+                    
+                    <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg border">
+                        <div>
+                            <span class="block text-sm font-semibold text-gray-700">Modalità Manutenzione</span>
+                            <span id="maintenance-state-label" class="text-xs text-gray-500">Attualmente disattivata</span>
+                        </div>
+                        <button id="maintenance-toggle-btn" onclick="toggleMaintenance()" class="bg-green-600 hover:bg-green-700 text-white text-xs font-semibold px-4 py-2 rounded-lg transition shadow">
+                            Attiva Manutenzione
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <!-- SIDEBAR -->
         <div class="w-full md:w-[380px] bg-white border-r border-gray-200 flex flex-col h-full relative">
             <!-- Header Sidebar -->
@@ -99,9 +136,11 @@
                     <div id="sidebar-user-avatar" class="w-10 h-10 rounded-full bg-green-700 text-white flex items-center justify-center font-bold overflow-hidden shadow"></div>
                     <span id="current-user-display" class="font-bold text-gray-800 text-sm"></span>
                 </div>
-                <div class="flex items-center gap-3 text-gray-600">
-                    <button onclick="openAccountSettings()" title="Impostazioni Account" class="hover:text-green-600 transition"><i data-lucide="settings" class="w-5 h-5"></i></button>
-                    <button onclick="logout(event)" title="Esci" class="hover:text-red-600 transition"><i data-lucide="log-out" class="w-5 h-5"></i></button>
+                <div class="flex items-center gap-2 text-gray-600">
+                    <!-- Pulsante Admin condizionale -->
+                    <button id="admin-btn" onclick="openAdminPanel()" title="Pannello Admin" class="hidden hover:text-red-600 transition p-1 bg-red-50 rounded-lg"><i data-lucide="shield-alert" class="w-5 h-5 text-red-600"></i></button>
+                    <button onclick="openAccountSettings()" title="Impostazioni Account" class="hover:text-green-600 transition p-1"><i data-lucide="settings" class="w-5 h-5"></i></button>
+                    <button onclick="logout(event)" title="Esci" class="hover:text-red-600 transition p-1"><i data-lucide="log-out" class="w-5 h-5"></i></button>
                 </div>
             </div>
 
@@ -120,7 +159,6 @@
                         </label>
                     </div>
 
-                    <!-- ID Utente con Pulsante Copia -->
                     <div class="bg-white p-3 rounded-xl border shadow-sm">
                         <label class="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1">ID Univoco Account</label>
                         <div class="flex items-center justify-between gap-2">
@@ -132,19 +170,16 @@
                         <span id="copy-feedback" class="text-[10px] text-green-600 font-medium block mt-1 h-3"></span>
                     </div>
 
-                    <!-- Nome Utente -->
                     <div class="bg-white p-3 rounded-xl border shadow-sm">
                         <label class="block text-xs font-semibold text-green-700 uppercase tracking-wider mb-1">Nome Utente</label>
                         <input type="text" id="settings-username-input" class="w-full text-sm font-medium text-gray-800 border-b pb-1 focus:outline-none focus:border-green-600">
                     </div>
 
-                    <!-- Biografia -->
                     <div class="bg-white p-3 rounded-xl border shadow-sm">
                         <label class="block text-xs font-semibold text-green-700 uppercase tracking-wider mb-1">Biografia / Info</label>
                         <textarea id="settings-bio-input" rows="2" class="w-full text-sm font-medium text-gray-800 border-b pb-1 focus:outline-none focus:border-green-600 resize-none" placeholder="Es. Albese doc..."></textarea>
                     </div>
 
-                    <!-- Utenti Bloccati -->
                     <div class="bg-white p-3 rounded-xl border shadow-sm">
                         <label class="block text-xs font-semibold text-red-600 uppercase tracking-wider mb-2">Utenti Bloccati</label>
                         <div id="blocked-users-list" class="space-y-1 text-sm text-gray-600 max-h-32 overflow-y-auto">
@@ -215,9 +250,69 @@
         const ALBA_LAT = 44.6925;
         const ALBA_LNG = 8.0267;
         const MAX_DISTANCE_KM = 12;
+        const ADMIN_ID = "usr_1792535402544972";
 
         let currentUser = null;
         let activeContactId = null;
+
+        // Controllo manutenzione all'avvio
+        window.addEventListener('DOMContentLoaded', () => {
+            checkMaintenanceMode();
+        });
+
+        function checkMaintenanceMode() {
+            const isMaintenance = localStorage.getItem('albacore_maintenance') === 'true';
+            const maintenanceScreen = document.getElementById('maintenance-screen');
+
+            // Se è attivo e l'utente loggato non è l'admin, mostra la schermata di manutenzione
+            if (isMaintenance && (!currentUser || currentUser.id !== ADMIN_ID)) {
+                maintenanceScreen.classList.remove('hidden');
+                maintenanceScreen.classList.add('flex');
+            } else {
+                maintenanceScreen.classList.remove('flex');
+                maintenanceScreen.classList.add('hidden');
+            }
+        }
+
+        function toggleMaintenance() {
+            if (!currentUser || currentUser.id !== ADMIN_ID) return;
+            const current = localStorage.getItem('albacore_maintenance') === 'true';
+            localStorage.setItem('albacore_maintenance', !current);
+            updateAdminPanelUI();
+            checkMaintenanceMode();
+        }
+
+        function updateAdminPanelUI() {
+            const isMaintenance = localStorage.getItem('albacore_maintenance') === 'true';
+            const label = document.getElementById('maintenance-state-label');
+            const btn = document.getElementById('maintenance-toggle-btn');
+
+            if (isMaintenance) {
+                label.textContent = "Stato: ATTIVA (Sito chiuso al pubblico)";
+                label.className = "text-xs text-red-600 font-bold";
+                btn.textContent = "Disattiva Manutenzione (Riattiva)";
+                btn.className = "bg-red-600 hover:bg-red-700 text-white text-xs font-semibold px-4 py-2 rounded-lg transition shadow";
+            } else {
+                label.textContent = "Stato: Disattivata (Sito online)";
+                label.className = "text-xs text-green-600 font-bold";
+                btn.textContent = "Attiva Manutenzione";
+                btn.className = "bg-green-600 hover:bg-green-700 text-white text-xs font-semibold px-4 py-2 rounded-lg transition shadow";
+            }
+        }
+
+        function openAdminPanel() {
+            if (!currentUser || currentUser.id !== ADMIN_ID) return;
+            updateAdminPanelUI();
+            const panel = document.getElementById('admin-panel');
+            panel.classList.remove('-translate-x-full');
+            panel.classList.add('translate-x-0');
+        }
+
+        function closeAdminPanel() {
+            const panel = document.getElementById('admin-panel');
+            panel.classList.remove('translate-x-0');
+            panel.classList.add('-translate-x-full');
+        }
 
         function getUsers() {
             return JSON.parse(localStorage.getItem('albacore_users')) || [];
@@ -353,8 +448,20 @@
             if(!currentUser.blockedUsers) currentUser.blockedUsers = [];
             if(!currentUser.bio) currentUser.bio = "Ciao! Uso ALBACORECHAT.";
             
+            // Verifica se c'è manutenzione attiva
+            checkMaintenanceMode();
+
             document.getElementById('auth-modal').classList.add('hidden');
             document.getElementById('app-container').classList.remove('hidden');
+            
+            // Mostra o nascondi il pulsante admin in base all'ID esatto
+            const adminBtn = document.getElementById('admin-btn');
+            if (currentUser.id === ADMIN_ID) {
+                adminBtn.classList.remove('hidden');
+            } else {
+                adminBtn.classList.add('hidden');
+            }
+
             updateUserInterface();
             loadContacts();
         }
@@ -377,6 +484,7 @@
             document.getElementById('app-container').classList.add('hidden');
             document.getElementById('auth-modal').classList.remove('hidden');
             showAuthChoice();
+            checkMaintenanceMode();
         }
 
         function openAccountSettings() {
@@ -518,7 +626,6 @@
             const listContainer = document.getElementById('contacts-list');
             listContainer.innerHTML = '';
 
-            // Trova tutti gli utenti con cui esiste già una chat attiva
             const chattedUserIds = new Set();
             Object.keys(allMessages).forEach(key => {
                 if (key.includes(currentUser.id)) {
@@ -532,10 +639,8 @@
             
             let displayUsers = [];
             if (searchQuery) {
-                // Cerca per ID esatto o parziale
                 displayUsers = users.filter(u => u.id !== currentUser.id && u.id.toLowerCase().includes(searchQuery));
             } else {
-                // Mostra solo chi ha una chat attiva (stile WhatsApp)
                 displayUsers = users.filter(u => chattedUserIds.has(u.id));
             }
 
@@ -651,7 +756,7 @@
             saveMessages(allMessages);
             input.value = '';
             renderMessages();
-            loadContacts(); // Aggiorna la lista chat per far apparire subito la conversazione
+            loadContacts();
         }
 
         function handleKeyPress(e) {
