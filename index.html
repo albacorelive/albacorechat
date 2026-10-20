@@ -4,9 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ALBACORECHAT - La chat di Alba</title>
-    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Lucide Icons -->
     <script src="https://unpkg.com/lucide@latest"></script>
     <style>
         .wa-chat-bg {
@@ -36,7 +34,7 @@
         </div>
     </div>
 
-    <!-- MODALE AUTENTICAZIONE (ACCEDI O REGISTRATI) -->
+    <!-- MODALE AUTENTICAZIONE -->
     <div id="auth-modal" class="fixed inset-0 z-40 bg-black/70 hidden items-center justify-center p-4">
         <div class="bg-white rounded-2xl max-w-md w-full p-8 shadow-2xl flex flex-col">
             <div class="text-center mb-6">
@@ -45,7 +43,6 @@
                 <p class="text-xs text-gray-500">La chat ufficiale della community di Alba</p>
             </div>
 
-            <!-- Scelta Iniziale -->
             <div id="auth-choice-view" class="space-y-3">
                 <button onclick="showRegisterForm()" class="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-3 rounded-xl transition shadow-md">
                     Crea il tuo account
@@ -55,7 +52,6 @@
                 </button>
             </div>
 
-            <!-- Form di Registrazione -->
             <div id="register-view" class="hidden space-y-4">
                 <h3 class="text-lg font-bold text-gray-800 text-center">Registrazione</h3>
                 <div>
@@ -73,7 +69,6 @@
                 <button onclick="showAuthChoice()" class="w-full text-xs text-gray-500 hover:underline text-center">Indietro</button>
             </div>
 
-            <!-- Form di Login -->
             <div id="login-view" class="hidden space-y-4">
                 <h3 class="text-lg font-bold text-gray-800 text-center">Accedi</h3>
                 <div>
@@ -97,16 +92,67 @@
     <div id="app-container" class="hidden flex h-full w-full max-w-7xl mx-auto bg-white shadow-2xl my-auto rounded-none md:rounded-xl overflow-hidden border border-gray-300">
         
         <!-- SIDEBAR -->
-        <div class="w-full md:w-[380px] bg-white border-r border-gray-200 flex flex-col h-full">
+        <div class="w-full md:w-[380px] bg-white border-r border-gray-200 flex flex-col h-full relative">
             <!-- Header Sidebar -->
             <div class="p-4 bg-gray-100 border-b flex items-center justify-between">
-                <div class="flex items-center gap-3">
-                    <img src="logo.png" alt="Logo AlbaCore" class="h-10 w-auto object-contain">
-                    <span class="font-bold text-gray-800 tracking-wide text-lg">ALBACORECHAT</span>
+                <div class="flex items-center gap-3 cursor-pointer" onclick="openAccountSettings()" title="Modifica Profilo">
+                    <div id="sidebar-user-avatar" class="w-10 h-10 rounded-full bg-green-700 text-white flex items-center justify-center font-bold overflow-hidden shadow">
+                        <!-- Immagine o Iniziali -->
+                    </div>
+                    <span id="current-user-display" class="font-bold text-gray-800 text-sm"></span>
                 </div>
-                <div class="flex items-center gap-2 text-gray-600">
-                    <span id="current-user-display" class="text-xs font-semibold bg-green-100 text-green-800 px-2 py-1 rounded-full"></span>
-                    <button onclick="logout()" title="Esci" class="hover:text-red-600"><i data-lucide="log-out" class="w-4 h-4"></i></button>
+                <div class="flex items-center gap-3 text-gray-600">
+                    <button onclick="openAccountSettings()" title="Impostazioni Account" class="hover:text-green-600 transition"><i data-lucide="settings" class="w-5 h-5"></i></button>
+                    <button onclick="logout(event)" title="Esci" class="hover:text-red-600 transition"><i data-lucide="log-out" class="w-5 h-5"></i></button>
+                </div>
+            </div>
+
+            <!-- Pannello Impostazioni Account (Stile WhatsApp Drawer) -->
+            <div id="account-settings-panel" class="absolute inset-0 bg-white z-20 flex flex-col transition-transform duration-300 transform -translate-x-full">
+                <div class="p-4 bg-green-700 text-white flex items-center gap-4">
+                    <button onclick="closeAccountSettings()" class="hover:bg-green-800 p-1 rounded-full"><i data-lucide="arrow-left" class="w-6 h-6"></i></button>
+                    <h2 class="font-bold text-lg">Profilo e Account</h2>
+                </div>
+                <div class="flex-1 overflow-y-auto p-6 space-y-6 bg-gray-50">
+                    <!-- Foto Profilo -->
+                    <div class="flex flex-col items-center">
+                        <div id="settings-avatar-container" class="w-24 h-24 rounded-full bg-green-700 text-white text-2xl font-bold flex items-center justify-center overflow-hidden shadow-md mb-3"></div>
+                        <label class="text-xs text-green-700 font-semibold cursor-pointer hover:underline">
+                            Cambia foto (URL immagine)
+                            <input type="text" id="settings-avatar-url" placeholder="Incolla link immagine..." class="mt-1 w-full text-xs p-1.5 border rounded text-gray-700 font-normal">
+                        </label>
+                    </div>
+
+                    <!-- ID Utente -->
+                    <div class="bg-white p-3 rounded-xl border shadow-sm">
+                        <label class="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1">ID Univoco Account</label>
+                        <p id="settings-user-id" class="text-sm font-mono text-gray-700 select-all"></p>
+                    </div>
+
+                    <!-- Nome Utente -->
+                    <div class="bg-white p-3 rounded-xl border shadow-sm">
+                        <label class="block text-xs font-semibold text-green-700 uppercase tracking-wider mb-1">Nome Utente</label>
+                        <input type="text" id="settings-username-input" class="w-full text-sm font-medium text-gray-800 border-b pb-1 focus:outline-none focus:border-green-600">
+                    </div>
+
+                    <!-- Biografia -->
+                    <div class="bg-white p-3 rounded-xl border shadow-sm">
+                        <label class="block text-xs font-semibold text-green-700 uppercase tracking-wider mb-1">Biografia / Info</label>
+                        <textarea id="settings-bio-input" rows="2" class="w-full text-sm font-medium text-gray-800 border-b pb-1 focus:outline-none focus:border-green-600 resize-none" placeholder="Es. Albeiese doc..."></textarea>
+                    </div>
+
+                    <!-- Utenti Bloccati -->
+                    <div class="bg-white p-3 rounded-xl border shadow-sm">
+                        <label class="block text-xs font-semibold text-red-600 uppercase tracking-wider mb-2">Utenti Bloccati</label>
+                        <div id="blocked-users-list" class="space-y-1 text-sm text-gray-600 max-h-32 overflow-y-auto">
+                            <span class="text-xs text-gray-400 italic">Nessun utente bloccato.</span>
+                        </div>
+                    </div>
+
+                    <button onclick="saveAccountSettings()" class="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-3 rounded-xl transition shadow-md">
+                        Salva Modifiche
+                    </button>
+                    <p id="settings-save-feedback" class="text-xs text-center text-green-600 font-medium h-4"></p>
                 </div>
             </div>
 
@@ -118,7 +164,7 @@
                 </div>
             </div>
 
-            <!-- Lista Contatti (Partenza vuota) -->
+            <!-- Lista Contatti -->
             <div id="contacts-list" class="flex-1 overflow-y-auto divide-y divide-gray-100">
                 <div class="p-6 text-center text-gray-400 text-sm">Nessun altro utente online al momento.</div>
             </div>
@@ -126,7 +172,6 @@
 
         <!-- AREA DELLA CHAT -->
         <div class="hidden md:flex flex-1 flex-col h-full bg-gray-50" id="chat-area-wrapper">
-            <!-- Schermata di Benvenuto Iniziale -->
             <div id="welcome-screen" class="flex-1 flex flex-col items-center justify-center bg-gray-50 p-10 text-center border-b-4 border-green-600">
                 <div class="mb-6">
                     <img src="logo.png" alt="Logo Grande" class="h-28 w-auto object-contain mx-auto mb-4 drop-shadow-md">
@@ -135,15 +180,17 @@
                 <p class="text-gray-500 max-w-md text-sm">Seleziona un utente dalla lista a sinistra per iniziare a conversare in privato.</p>
             </div>
 
-            <!-- Chat Attiva -->
             <div id="active-chat" class="hidden flex-1 flex flex-col h-full">
                 <div class="p-3 bg-gray-100 border-b flex items-center justify-between">
                     <div class="flex items-center gap-3">
-                        <div id="chat-avatar" class="w-10 h-10 rounded-full bg-green-700 text-white flex items-center justify-center font-bold">A</div>
+                        <div id="chat-avatar" class="w-10 h-10 rounded-full bg-green-700 text-white flex items-center justify-center font-bold overflow-hidden">A</div>
                         <div>
                             <h3 id="chat-name" class="font-semibold text-gray-800 text-sm">Nome Contatto</h3>
                             <span id="chat-status" class="text-xs text-gray-500">online</span>
                         </div>
+                    </div>
+                    <div>
+                        <button onclick="toggleBlockUser()" id="block-btn-header" class="text-xs bg-red-100 hover:bg-red-200 text-red-700 font-semibold px-3 py-1.5 rounded-lg transition">Blocca utente</button>
                     </div>
                 </div>
 
@@ -169,7 +216,6 @@
         let currentUser = null;
         let activeContactId = null;
 
-        // Gestione database locale in memoria/localStorage
         function getUsers() {
             return JSON.parse(localStorage.getItem('albacore_users')) || [];
         }
@@ -268,17 +314,18 @@
                 return;
             }
 
-            // Genera ID univoco
             const newUser = {
                 id: 'usr_' + Date.now() + Math.floor(Math.random() * 1000),
                 username: username,
                 password: password,
-                avatar: username.substring(0, 2).toUpperCase()
+                bio: "Ciao! Uso ALBACORECHAT.",
+                avatar: username.substring(0, 2).toUpperCase(),
+                avatarUrl: "",
+                blockedUsers: []
             };
 
             users.push(newUser);
             saveUsers(users);
-
             loginSuccess(newUser);
         }
 
@@ -300,13 +347,28 @@
 
         function loginSuccess(user) {
             currentUser = user;
+            if(!currentUser.blockedUsers) currentUser.blockedUsers = [];
+            if(!currentUser.bio) currentUser.bio = "Ciao! Uso ALBACORECHAT.";
+            
             document.getElementById('auth-modal').classList.add('hidden');
             document.getElementById('app-container').classList.remove('hidden');
-            document.getElementById('current-user-display').textContent = user.username;
+            updateUserInterface();
             loadContacts();
         }
 
-        function logout() {
+        function updateUserInterface() {
+            document.getElementById('current-user-display').textContent = currentUser.username;
+            
+            const sidebarAvatar = document.getElementById('sidebar-user-avatar');
+            if (currentUser.avatarUrl) {
+                sidebarAvatar.innerHTML = `<img src="${currentUser.avatarUrl}" class="w-full h-full object-cover">`;
+            } else {
+                sidebarAvatar.textContent = currentUser.avatar;
+            }
+        }
+
+        function logout(e) {
+            if(e) e.stopPropagation();
             currentUser = null;
             activeContactId = null;
             document.getElementById('app-container').classList.add('hidden');
@@ -314,12 +376,139 @@
             showAuthChoice();
         }
 
+        function openAccountSettings() {
+            document.getElementById('settings-user-id').textContent = currentUser.id;
+            document.getElementById('settings-username-input').value = currentUser.username;
+            document.getElementById('settings-bio-input').value = currentUser.bio || '';
+            document.getElementById('settings-avatar-url').value = currentUser.avatarUrl || '';
+            
+            const settingsAvatar = document.getElementById('settings-avatar-container');
+            if (currentUser.avatarUrl) {
+                settingsAvatar.innerHTML = `<img src="${currentUser.avatarUrl}" class="w-full h-full object-cover">`;
+            } else {
+                settingsAvatar.textContent = currentUser.avatar;
+            }
+
+            renderBlockedUsersList();
+
+            const panel = document.getElementById('account-settings-panel');
+            panel.classList.remove('-translate-x-full');
+            panel.classList.add('translate-x-0');
+        }
+
+        function closeAccountSettings() {
+            const panel = document.getElementById('account-settings-panel');
+            panel.classList.remove('translate-x-0');
+            panel.classList.add('-translate-x-full');
+        }
+
+        function saveAccountSettings() {
+            const newUsername = document.getElementById('settings-username-input').value.trim();
+            const newBio = document.getElementById('settings-bio-input').value.trim();
+            const newAvatarUrl = document.getElementById('settings-avatar-url').value.trim();
+            const feedbackEl = document.getElementById('settings-save-feedback');
+
+            if (!newUsername) {
+                feedbackEl.textContent = "Il nome utente non può essere vuoto.";
+                feedbackEl.className = "text-xs text-center text-red-500 font-medium h-4";
+                return;
+            }
+
+            let users = getUsers();
+            // Verifica se il nome è già preso da un altro utente
+            if (users.some(u => u.username.toLowerCase() === newUsername.toLowerCase() && u.id !== currentUser.id)) {
+                feedbackEl.textContent = "Nome utente già in uso.";
+                feedbackEl.className = "text-xs text-center text-red-500 font-medium h-4";
+                return;
+            }
+
+            currentUser.username = newUsername;
+            currentUser.bio = newBio;
+            currentUser.avatarUrl = newAvatarUrl;
+            currentUser.avatar = newUsername.substring(0, 2).toUpperCase();
+
+            // Aggiorna nel database globale
+            users = users.map(u => u.id === currentUser.id ? currentUser : u);
+            saveUsers(users);
+
+            updateUserInterface();
+            feedbackEl.textContent = "Modifiche salvate con successo!";
+            feedbackEl.className = "text-xs text-center text-green-600 font-medium h-4";
+            
+            setTimeout(() => {
+                feedbackEl.textContent = "";
+                closeAccountSettings();
+                loadContacts();
+            }, 1000);
+        }
+
+        function renderBlockedUsersList() {
+            const container = document.getElementById('blocked-users-list');
+            container.innerHTML = '';
+
+            if (!currentUser.blockedUsers || currentUser.blockedUsers.length === 0) {
+                container.innerHTML = `<span class="text-xs text-gray-400 italic">Nessun utente bloccato.</span>`;
+                return;
+            }
+
+            const users = getUsers();
+            currentUser.blockedUsers.forEach(blockedId => {
+                const bUser = users.find(u => u.id === blockedId);
+                if (bUser) {
+                    const row = document.createElement('div');
+                    row.className = "flex justify-between items-center bg-gray-50 p-1.5 rounded border mb-1";
+                    row.innerHTML = `
+                        <span class="text-xs font-medium text-gray-700">${bUser.username}</span>
+                        <button onclick="unblockUser('${bUser.id}')" class="text-[10px] bg-gray-200 hover:bg-red-100 hover:text-red-700 px-2 py-0.5 rounded transition">Sblocca</button>
+                    `;
+                    container.appendChild(row);
+                }
+            });
+        }
+
+        function toggleBlockUser() {
+            if (!activeContactId) return;
+            if (!currentUser.blockedUsers) currentUser.blockedUsers = [];
+
+            const index = currentUser.blockedUsers.indexOf(activeContactId);
+            if (index > -1) {
+                currentUser.blockedUsers.splice(index, 1);
+            } else {
+                currentUser.blockedUsers.push(activeContactId);
+            }
+
+            let users = getUsers();
+            users = users.map(u => u.id === currentUser.id ? currentUser : u);
+            saveUsers(users);
+
+            updateBlockButtonState();
+        }
+
+        function unblockUser(id) {
+            currentUser.blockedUsers = currentUser.blockedUsers.filter(bId => bId !== id);
+            let users = getUsers();
+            users = users.map(u => u.id === currentUser.id ? currentUser : u);
+            saveUsers(users);
+            renderBlockedUsersList();
+            updateBlockButtonState();
+        }
+
+        function updateBlockButtonState() {
+            const btn = document.getElementById('block-btn-header');
+            if (currentUser.blockedUsers && currentUser.blockedUsers.includes(activeContactId)) {
+                btn.textContent = "Sblocca utente";
+                btn.className = "text-xs bg-green-100 hover:bg-green-200 text-green-700 font-semibold px-3 py-1.5 rounded-lg transition";
+            } else {
+                btn.textContent = "Blocca utente";
+                btn.className = "text-xs bg-red-100 hover:bg-red-200 text-red-700 font-semibold px-3 py-1.5 rounded-lg transition";
+            }
+        }
+
         function loadContacts() {
             const users = getUsers();
             const listContainer = document.getElementById('contacts-list');
             listContainer.innerHTML = '';
 
-            // Filtra per escludere se stessi
             const otherUsers = users.filter(u => u.id !== currentUser.id);
 
             if (otherUsers.length === 0) {
@@ -331,15 +520,19 @@
                 const div = document.createElement('div');
                 div.className = `flex items-center gap-3 p-3 hover:bg-gray-50 cursor-pointer transition border-b border-gray-100`;
                 div.onclick = () => selectContact(user.id);
+                
+                let avatarHTML = `<div class="w-12 h-12 rounded-full bg-green-700 text-white font-bold flex items-center justify-center shrink-0 overflow-hidden">${user.avatar}</div>`;
+                if (user.avatarUrl) {
+                    avatarHTML = `<div class="w-12 h-12 rounded-full shrink-0 overflow-hidden"><img src="${user.avatarUrl}" class="w-full h-full object-cover"></div>`;
+                }
+
                 div.innerHTML = `
-                    <div class="w-12 h-12 rounded-full bg-green-700 text-white font-bold flex items-center justify-center shrink-0">
-                        ${user.avatar}
-                    </div>
+                    ${avatarHTML}
                     <div class="flex-1 min-w-0">
                         <div class="flex justify-between items-baseline">
                             <h4 class="font-semibold text-gray-800 text-sm truncate">${user.username}</h4>
                         </div>
-                        <p class="text-xs text-gray-500 truncate">online</p>
+                        <p class="text-xs text-gray-500 truncate">${user.bio || 'online'}</p>
                     </div>
                 `;
                 listContainer.appendChild(div);
@@ -358,8 +551,15 @@
             activeChat.classList.add('flex');
 
             document.getElementById('chat-name').textContent = contact.username;
-            document.getElementById('chat-avatar').textContent = contact.avatar;
+            
+            const chatAvatar = document.getElementById('chat-avatar');
+            if (contact.avatarUrl) {
+                chatAvatar.innerHTML = `<img src="${contact.avatarUrl}" class="w-full h-full object-cover">`;
+            } else {
+                chatAvatar.textContent = contact.avatar;
+            }
 
+            updateBlockButtonState();
             renderMessages();
         }
 
@@ -391,6 +591,11 @@
         }
 
         function sendMessage() {
+            if (currentUser.blockedUsers && currentUser.blockedUsers.includes(activeContactId)) {
+                alert("Non puoi inviare messaggi a un utente che hai bloccato.");
+                return;
+            }
+
             const input = document.getElementById('message-input');
             const text = input.value.trim();
             if (!text || activeContactId === null) return;
