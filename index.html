@@ -4,12 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ALBACORECHAT - La chat di Alba</title>
-    <!-- Tailwind CSS per la grafica -->
+    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Lucide Icons -->
     <script src="https://unpkg.com/lucide@latest"></script>
     <style>
-        /* Sfondo stile WhatsApp Web */
         .wa-chat-bg {
             background-color: #efeae2;
             background-image: url("https://static.whatsapp.net/rsrc.php/v3/y6/r/wa66NX_p9Fh.png");
@@ -28,7 +27,7 @@
             </div>
             <h2 class="text-2xl font-bold text-gray-800 mb-2">Verifica Territoriale</h2>
             <p class="text-gray-600 text-sm mb-6">
-                ALBACORECHAT è riservata esclusivamente a chi si trova ad **Alba (CN)**. Per continuare, abbiamo bisogno di verificare la tua posizione geografica.
+                ALBACORECHAT è riservata esclusivamente a chi si trova ad **Alba (CN)**. Verifica la tua posizione per procedere.
             </p>
             <div id="geo-status" class="text-sm font-medium text-gray-500 mb-4"></div>
             <button onclick="checkGeolocation()" id="geo-btn" class="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-3 rounded-xl transition duration-200 shadow-md">
@@ -37,25 +36,60 @@
         </div>
     </div>
 
-    <!-- MODALE TERMINI E CONDIZIONI -->
-    <div id="terms-modal" class="fixed inset-0 z-40 bg-black/70 hidden items-center justify-center p-4">
-        <div class="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl flex flex-col max-h-[85vh]">
-            <h2 class="text-xl font-bold text-gray-800 mb-3 flex items-center gap-2">
-                <i data-lucide="shield-check" class="text-green-600"></i> Termini e Condizioni d'Uso
-            </h2>
-            <div class="bg-gray-50 border border-gray-200 rounded-xl p-4 text-xs text-gray-600 overflow-y-auto flex-1 mb-4 space-y-2">
-                <p><strong>1. Scopo della Community:</strong> ALBACORECHAT è una piattaforma indipendente pensata esclusivamente per facilitare le comunicazioni, gli scambi e la socializzazione tra i cittadini e residenti nella città di Alba (CN).</p>
-                <p><strong>2. Comportamento e Rispetto:</strong> È severamente vietato pubblicare contenuti offensivi, diffamatori, discriminatori o spam commerciale. Ciascun utente è civilmente e penalmente responsabile di ciò che scrive.</p>
-                <p><strong>3. Moderazione:</strong> Gli amministratori si riserva il diritto di rimuovere account o messaggi non conformi allo spirito della community locale.</p>
-                <p><strong>4. Privacy:</strong> I messaggi vengono memorizzati localmente sul dispositivo o temporaneamente per il corretto funzionamento della chat cittadina. Non vengono ceduti a terzi.</p>
+    <!-- MODALE AUTENTICAZIONE (ACCEDI O REGISTRATI) -->
+    <div id="auth-modal" class="fixed inset-0 z-40 bg-black/70 hidden items-center justify-center p-4">
+        <div class="bg-white rounded-2xl max-w-md w-full p-8 shadow-2xl flex flex-col">
+            <div class="text-center mb-6">
+                <img src="logo.png" alt="Logo AlbaCore" class="h-16 w-auto object-contain mx-auto mb-2">
+                <h2 class="text-2xl font-bold text-gray-800">ALBACORECHAT</h2>
+                <p class="text-xs text-gray-500">La chat ufficiale della community di Alba</p>
             </div>
-            <div class="flex items-center gap-2 mb-4">
-                <input type="checkbox" id="accept-terms" class="w-4 h-4 text-green-600 rounded border-gray-300 focus:ring-green-500">
-                <label for="accept-terms" class="text-sm text-gray-700 select-none cursor-pointer">Ho letto e accetto i Termini e Condizioni</label>
+
+            <!-- Scelta Iniziale -->
+            <div id="auth-choice-view" class="space-y-3">
+                <button onclick="showRegisterForm()" class="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-3 rounded-xl transition shadow-md">
+                    Crea il tuo account
+                </button>
+                <button onclick="showLoginForm()" class="w-full bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold py-3 rounded-xl transition">
+                    Accedi con il tuo account
+                </button>
             </div>
-            <button onclick="submitProfile()" id="start-btn" disabled class="w-full bg-gray-300 text-gray-500 font-semibold py-3 rounded-xl transition duration-200 cursor-not-allowed">
-                Accedi ad ALBACORECHAT
-            </button>
+
+            <!-- Form di Registrazione -->
+            <div id="register-view" class="hidden space-y-4">
+                <h3 class="text-lg font-bold text-gray-800 text-center">Registrazione</h3>
+                <div>
+                    <label class="block text-xs font-semibold text-gray-600 mb-1">Nome Utente</label>
+                    <input type="text" id="reg-username" class="w-full bg-gray-50 border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500" placeholder="Scegli un nome utente...">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-gray-600 mb-1">Password</label>
+                    <input type="password" id="reg-password" class="w-full bg-gray-50 border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500" placeholder="Scegli una password...">
+                </div>
+                <p id="reg-error" class="text-xs text-red-500 text-center h-4"></p>
+                <button onclick="handleRegister()" class="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-2.5 rounded-xl transition shadow-md">
+                    Registrati
+                </button>
+                <button onclick="showAuthChoice()" class="w-full text-xs text-gray-500 hover:underline text-center">Indietro</button>
+            </div>
+
+            <!-- Form di Login -->
+            <div id="login-view" class="hidden space-y-4">
+                <h3 class="text-lg font-bold text-gray-800 text-center">Accedi</h3>
+                <div>
+                    <label class="block text-xs font-semibold text-gray-600 mb-1">Nome Utente</label>
+                    <input type="text" id="login-username" class="w-full bg-gray-50 border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500" placeholder="Il tuo nome utente...">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-gray-600 mb-1">Password</label>
+                    <input type="password" id="login-password" class="w-full bg-gray-50 border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500" placeholder="La tua password...">
+                </div>
+                <p id="login-error" class="text-xs text-red-500 text-center h-4"></p>
+                <button onclick="handleLogin()" class="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-2.5 rounded-xl transition shadow-md">
+                    Accedi
+                </button>
+                <button onclick="showAuthChoice()" class="w-full text-xs text-gray-500 hover:underline text-center">Indietro</button>
+            </div>
         </div>
     </div>
 
@@ -70,9 +104,9 @@
                     <img src="logo.png" alt="Logo AlbaCore" class="h-10 w-auto object-contain">
                     <span class="font-bold text-gray-800 tracking-wide text-lg">ALBACORECHAT</span>
                 </div>
-                <div class="flex items-center gap-4 text-gray-600">
-                    <i data-lucide="message-square" class="w-5 h-5 cursor-pointer hover:text-green-600"></i>
-                    <i data-lucide="more-vertical" class="w-5 h-5 cursor-pointer hover:text-green-600"></i>
+                <div class="flex items-center gap-2 text-gray-600">
+                    <span id="current-user-display" class="text-xs font-semibold bg-green-100 text-green-800 px-2 py-1 rounded-full"></span>
+                    <button onclick="logout()" title="Esci" class="hover:text-red-600"><i data-lucide="log-out" class="w-4 h-4"></i></button>
                 </div>
             </div>
 
@@ -80,13 +114,13 @@
             <div class="p-2 bg-white border-b">
                 <div class="flex items-center bg-gray-100 rounded-lg px-3 py-1.5">
                     <i data-lucide="search" class="w-4 h-4 text-gray-400 mr-2"></i>
-                    <input type="text" placeholder="Cerca un albese o una chat..." class="bg-transparent text-sm w-full focus:outline-none text-gray-700">
+                    <input type="text" placeholder="Cerca un utente registrato..." class="bg-transparent text-sm w-full focus:outline-none text-gray-700">
                 </div>
             </div>
 
-            <!-- Lista Contatti -->
+            <!-- Lista Contatti (Partenza vuota) -->
             <div id="contacts-list" class="flex-1 overflow-y-auto divide-y divide-gray-100">
-                <!-- Generati via JS -->
+                <div class="p-6 text-center text-gray-400 text-sm">Nessun altro utente online al momento.</div>
             </div>
         </div>
 
@@ -98,12 +132,11 @@
                     <img src="logo.png" alt="Logo Grande" class="h-28 w-auto object-contain mx-auto mb-4 drop-shadow-md">
                 </div>
                 <h2 class="text-3xl font-bold text-gray-700 mb-2">Benvenuti ad ALBACORECHAT</h2>
-                <p class="text-gray-500 max-w-md text-sm">La community digitale ufficiale per connettere tutti i cittadini di Alba. Seleziona una chat dalla lista a sinistra per iniziare a conversare.</p>
+                <p class="text-gray-500 max-w-md text-sm">Seleziona un utente dalla lista a sinistra per iniziare a conversare in privato.</p>
             </div>
 
-            <!-- Chat Attiva (Nascosta all'avvio) -->
+            <!-- Chat Attiva -->
             <div id="active-chat" class="hidden flex-1 flex flex-col h-full">
-                <!-- Header Chat Attiva -->
                 <div class="p-3 bg-gray-100 border-b flex items-center justify-between">
                     <div class="flex items-center gap-3">
                         <div id="chat-avatar" class="w-10 h-10 rounded-full bg-green-700 text-white flex items-center justify-center font-bold">A</div>
@@ -112,22 +145,11 @@
                             <span id="chat-status" class="text-xs text-gray-500">online</span>
                         </div>
                     </div>
-                    <div class="flex items-center gap-4 text-gray-600">
-                        <i data-lucide="phone" class="w-5 h-5 cursor-pointer hover:text-green-600"></i>
-                        <i data-lucide="video" class="w-5 h-5 cursor-pointer hover:text-green-600"></i>
-                        <i data-lucide="search" class="w-5 h-5 cursor-pointer hover:text-green-600"></i>
-                    </div>
                 </div>
 
-                <!-- Corpo Messaggi -->
-                <div id="messages-container" class="flex-1 wa-chat-bg p-6 overflow-y-auto flex flex-col gap-3">
-                    <!-- Messaggi dinamici -->
-                </div>
+                <div id="messages-container" class="flex-1 wa-chat-bg p-6 overflow-y-auto flex flex-col gap-3"></div>
 
-                <!-- Barra Scrittura Messaggio -->
                 <div class="p-3 bg-gray-100 border-b flex items-center gap-3">
-                    <i data-lucide="smile" class="w-6 h-6 text-gray-500 cursor-pointer hover:text-gray-700"></i>
-                    <i data-lucide="paperclip" class="w-6 h-6 text-gray-500 cursor-pointer hover:text-gray-700"></i>
                     <input type="text" id="message-input" placeholder="Scrivi un messaggio..." class="flex-1 bg-white rounded-lg px-4 py-2 text-sm focus:outline-none shadow-sm" onkeypress="handleKeyPress(event)">
                     <button onclick="sendMessage()" class="bg-green-600 hover:bg-green-700 text-white p-2 rounded-lg transition">
                         <i data-lucide="send" class="w-5 h-5"></i>
@@ -135,56 +157,68 @@
                 </div>
             </div>
         </div>
-
     </div>
 
     <script>
-        // Inizializzazione icone
         lucide.createIcons();
 
-        // Coordinate approssimative del comune di Alba (CN) centro
         const ALBA_LAT = 44.6925;
         const ALBA_LNG = 8.0267;
-        const MAX_DISTANCE_KM = 12; // Raggio di tolleranza di 12 km per coprire frazioni e immediate vicinanze
+        const MAX_DISTANCE_KM = 12;
+
+        let currentUser = null;
+        let activeContactId = null;
+
+        // Gestione database locale in memoria/localStorage
+        function getUsers() {
+            return JSON.parse(localStorage.getItem('albacore_users')) || [];
+        }
+
+        function saveUsers(users) {
+            localStorage.setItem('albacore_users', JSON.stringify(users));
+        }
+
+        function getMessages() {
+            return JSON.parse(localStorage.getItem('albacore_messages')) || {};
+        }
+
+        function saveMessages(msgs) {
+            localStorage.setItem('albacore_messages', JSON.stringify(msgs));
+        }
 
         function checkGeolocation() {
             const statusEl = document.getElementById('geo-status');
             const btnEl = document.getElementById('geo-btn');
 
             if (!navigator.geolocation) {
-                statusEl.textContent = "La geolocalizzazione non è supportata dal tuo browser.";
+                statusEl.textContent = "La geolocalizzazione non è supportata.";
                 statusEl.className = "text-sm font-medium text-red-500 mb-4";
                 return;
             }
 
-            statusEl.textContent = "Rilevamento della posizione in corso...";
+            statusEl.textContent = "Rilevamento posizione in corso...";
             statusEl.className = "text-sm font-medium text-blue-600 mb-4 animate-pulse";
             btnEl.disabled = true;
 
             navigator.geolocation.getCurrentPosition(
                 (position) => {
-                    const userLat = position.coords.latitude;
-                    const userLng = position.coords.longitude;
-
-                    const distance = calculateDistance(userLat, userLng, ALBA_LAT, ALBA_LNG);
-
+                    const distance = calculateDistance(position.coords.latitude, position.coords.longitude, ALBA_LAT, ALBA_LNG);
                     if (distance <= MAX_DISTANCE_KM) {
-                        statusEl.textContent = "Posizione verificata! Sei ad Alba.";
+                        statusEl.textContent = "Posizione verificata!";
                         statusEl.className = "text-sm font-medium text-green-600 mb-4";
                         setTimeout(() => {
                             document.getElementById('geo-modal').classList.add('hidden');
-                            document.getElementById('terms-modal').classList.remove('hidden');
-                            document.getElementById('terms-modal').classList.add('flex');
-                        }, 1000);
+                            document.getElementById('auth-modal').classList.remove('hidden');
+                            document.getElementById('auth-modal').classList.add('flex');
+                        }, 800);
                     } else {
-                        statusEl.textContent = `Accesso negato: ti trovi a circa ${Math.round(distance)} km da Alba. La chat è riservata ai residenti sul territorio.`;
+                        statusEl.textContent = `Fuori zona (${Math.round(distance)} km). Accesso consentito solo ad Alba.`;
                         statusEl.className = "text-sm font-medium text-red-600 mb-4";
                         btnEl.disabled = false;
-                        btnEl.textContent = "Riprova verifica";
                     }
                 },
-                (error) => {
-                    statusEl.textContent = "Impossibile rilevare la posizione. Assicurati di aver concesso i permessi GPS.";
+                () => {
+                    statusEl.textContent = "Impossibile rilevare la posizione GPS.";
                     statusEl.className = "text-sm font-medium text-red-500 mb-4";
                     btnEl.disabled = false;
                 },
@@ -192,79 +226,120 @@
             );
         }
 
-        // Formula di Haversine per calcolare la distanza in km tra due coordinate GPS
         function calculateDistance(lat1, lon1, lat2, lon2) {
-            const R = 6371; // Raggio della terra in km
-            const dLat = deg2rad(lat2 - lat1);
-            const dLon = deg2rad(lon2 - lon1);
-            const a =
-                Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-                Math.cos(deg2rad(lat1)) * Math.cos(deg2rad(lat2)) *
-                Math.sin(dLon / 2) * Math.sin(dLon / 2);
-            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-            return R * c;
+            const R = 6371;
+            const dLat = (lat2 - lat1) * Math.PI / 180;
+            const dLon = (lon2 - lon1) * Math.PI / 180;
+            const a = Math.sin(dLat/2) * Math.sin(dLat/2) + Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * Math.sin(dLon/2) * Math.sin(dLon/2);
+            return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
         }
 
-        function deg2rad(deg) {
-            return deg * (Math.PI / 180);
+        function showRegisterForm() {
+            document.getElementById('auth-choice-view').classList.add('hidden');
+            document.getElementById('register-view').classList.remove('hidden');
         }
 
-        // Abilitazione pulsante termini
-        document.getElementById('accept-terms').addEventListener('change', function() {
-            const startBtn = document.getElementById('start-btn');
-            if (this.checked) {
-                startBtn.disabled = false;
-                startBtn.classList.remove('bg-gray-300', 'text-gray-500', 'cursor-not-allowed');
-                startBtn.classList.add('bg-green-600', 'hover:bg-green-700', 'text-white', 'shadow-md');
-            } else {
-                startBtn.disabled = true;
-                startBtn.classList.add('bg-gray-300', 'text-gray-500', 'cursor-not-allowed');
-                startBtn.classList.remove('bg-green-600', 'hover:bg-green-700', 'text-white', 'shadow-md');
+        function showLoginForm() {
+            document.getElementById('auth-choice-view').classList.add('hidden');
+            document.getElementById('login-view').classList.remove('hidden');
+        }
+
+        function showAuthChoice() {
+            document.getElementById('register-view').classList.add('hidden');
+            document.getElementById('login-view').classList.add('hidden');
+            document.getElementById('auth-choice-view').classList.remove('hidden');
+            document.getElementById('reg-error').textContent = '';
+            document.getElementById('login-error').textContent = '';
+        }
+
+        function handleRegister() {
+            const username = document.getElementById('reg-username').value.trim();
+            const password = document.getElementById('reg-password').value;
+            const errorEl = document.getElementById('reg-error');
+
+            if (!username || !password) {
+                errorEl.textContent = "Compila tutti i campi.";
+                return;
             }
-        });
 
-        function submitProfile() {
-            document.getElementById('terms-modal').classList.add('hidden');
-            document.getElementById('app-container').classList.remove('hidden');
-            initChatApp();
+            let users = getUsers();
+            if (users.some(u => u.username.toLowerCase() === username.toLowerCase())) {
+                errorEl.textContent = "Nome utente già esistente. Scegline un altro.";
+                return;
+            }
+
+            // Genera ID univoco
+            const newUser = {
+                id: 'usr_' + Date.now() + Math.floor(Math.random() * 1000),
+                username: username,
+                password: password,
+                avatar: username.substring(0, 2).toUpperCase()
+            };
+
+            users.push(newUser);
+            saveUsers(users);
+
+            loginSuccess(newUser);
         }
 
-        // Dati dei contatti locali di Alba
-        const contacts = [
-            { id: 1, name: 'Giovanni Ferrero (Dolciaria)', zone: 'Centro Storico', status: 'online', avatar: 'GF' },
-            { id: 2, name: 'Matteo Tartufaio', zone: 'Moretta', status: 'ultimo accesso oggi alle 11:15', avatar: 'MT' },
-            { id: 3, name: 'Chiara - Liceo Scientifico', zone: 'Piave', status: 'online', avatar: 'C' },
-            { id: 4, name: 'Beppe del Bar Piazza', zone: 'Piazza del Duomo', status: 'online', avatar: 'B' },
-            { id: 5, name: 'Fiera del Tartufo (Info)', zone: 'Palatartufo', status: 'sempre attivo', avatar: 'FT' }
-        ];
+        function handleLogin() {
+            const username = document.getElementById('login-username').value.trim();
+            const password = document.getElementById('login-password').value;
+            const errorEl = document.getElementById('login-error');
 
-        let activeContactId = null;
-        let messagesData = {
-            1: [{ sender: 'other', text: 'Buongiorno! Pronto per la nuova linea di cioccolato?', time: '09:30' }],
-            2: [{ sender: 'other', text: 'Hai notizie dei tartufi bianchi in cerca nei boschi?', time: 'Ieri' }],
-            3: [{ sender: 'other', text: 'Ci vediamo in centro dopo scuola?', time: '14:20' }],
-            4: [{ sender: 'other', text: 'Un calico di Barolo ti aspetta al bar!', time: '17:05' }],
-            5: [{ sender: 'other', text: 'Benvenuto su ALBACORECHAT! Chiedi pure informazioni sugli eventi in città.', time: '08:00' }]
-        };
+            let users = getUsers();
+            const user = users.find(u => u.username.toLowerCase() === username.toLowerCase() && u.password === password);
 
-        function initChatApp() {
+            if (!user) {
+                errorEl.textContent = "Nome utente o password errati.";
+                return;
+            }
+
+            loginSuccess(user);
+        }
+
+        function loginSuccess(user) {
+            currentUser = user;
+            document.getElementById('auth-modal').classList.add('hidden');
+            document.getElementById('app-container').classList.remove('hidden');
+            document.getElementById('current-user-display').textContent = user.username;
+            loadContacts();
+        }
+
+        function logout() {
+            currentUser = null;
+            activeContactId = null;
+            document.getElementById('app-container').classList.add('hidden');
+            document.getElementById('auth-modal').classList.remove('hidden');
+            showAuthChoice();
+        }
+
+        function loadContacts() {
+            const users = getUsers();
             const listContainer = document.getElementById('contacts-list');
             listContainer.innerHTML = '';
 
-            contacts.forEach(contact => {
+            // Filtra per escludere se stessi
+            const otherUsers = users.filter(u => u.id !== currentUser.id);
+
+            if (otherUsers.length === 0) {
+                listContainer.innerHTML = `<div class="p-6 text-center text-gray-400 text-sm">Nessun altro utente registrato.</div>`;
+                return;
+            }
+
+            otherUsers.forEach(user => {
                 const div = document.createElement('div');
                 div.className = `flex items-center gap-3 p-3 hover:bg-gray-50 cursor-pointer transition border-b border-gray-100`;
-                div.onclick = () => selectContact(contact.id);
+                div.onclick = () => selectContact(user.id);
                 div.innerHTML = `
                     <div class="w-12 h-12 rounded-full bg-green-700 text-white font-bold flex items-center justify-center shrink-0">
-                        ${contact.avatar}
+                        ${user.avatar}
                     </div>
                     <div class="flex-1 min-w-0">
                         <div class="flex justify-between items-baseline">
-                            <h4 class="font-semibold text-gray-800 text-sm truncate">${contact.name}</h4>
-                            <span class="text-xs text-gray-400">${contact.zone}</span>
+                            <h4 class="font-semibold text-gray-800 text-sm truncate">${user.username}</h4>
                         </div>
-                        <p class="text-xs text-gray-500 truncate">${contact.status}</p>
+                        <p class="text-xs text-gray-500 truncate">online</p>
                     </div>
                 `;
                 listContainer.appendChild(div);
@@ -274,31 +349,35 @@
 
         function selectContact(id) {
             activeContactId = id;
-            const contact = contacts.find(c => c.id === id);
+            const users = getUsers();
+            const contact = users.find(u => u.id === id);
 
             document.getElementById('welcome-screen').classList.add('hidden');
             const activeChat = document.getElementById('active-chat');
             activeChat.classList.remove('hidden');
             activeChat.classList.add('flex');
 
-            document.getElementById('chat-name').textContent = contact.name;
-            document.getElementById('chat-status').textContent = contact.status;
+            document.getElementById('chat-name').textContent = contact.username;
             document.getElementById('chat-avatar').textContent = contact.avatar;
 
             renderMessages();
+        }
+
+        function getChatKey(id1, id2) {
+            return [id1, id2].sort().join('_');
         }
 
         function renderMessages() {
             const container = document.getElementById('messages-container');
             container.innerHTML = '';
 
-            if (!messagesData[activeContactId]) {
-                messagesData[activeContactId] = [];
-            }
+            const allMessages = getMessages();
+            const chatKey = getChatKey(currentUser.id, activeContactId);
+            const chatMessages = allMessages[chatKey] || [];
 
-            messagesData[activeContactId].forEach(msg => {
+            chatMessages.forEach(msg => {
                 const bubble = document.createElement('div');
-                const isMe = msg.sender === 'me';
+                const isMe = msg.senderId === currentUser.id;
                 bubble.className = `max-w-[70%] rounded-lg p-3 text-sm shadow-sm relative ${
                     isMe ? 'bg-[#d9fdd3] ml-auto rounded-tr-none' : 'bg-white mr-auto rounded-tl-none'
                 }`;
@@ -319,24 +398,22 @@
             const now = new Date();
             const timeStr = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
 
-            messagesData[activeContactId].push({
-                sender: 'me',
+            const allMessages = getMessages();
+            const chatKey = getChatKey(currentUser.id, activeContactId);
+            
+            if (!allMessages[chatKey]) {
+                allMessages[chatKey] = [];
+            }
+
+            allMessages[chatKey].push({
+                senderId: currentUser.id,
                 text: text,
                 time: timeStr
             });
 
+            saveMessages(allMessages);
             input.value = '';
             renderMessages();
-
-            // Simula risposta automatica dopo 1 secondo per testare la chat
-            setTimeout(() => {
-                messagesData[activeContactId].push({
-                    sender: 'other',
-                    text: 'Ricevuto! Ci sentiamo presto ad Alba.',
-                    time: `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes() + 1).padStart(2, '0')}`
-                });
-                renderMessages();
-            }, 1000);
         }
 
         function handleKeyPress(e) {
