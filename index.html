@@ -19,7 +19,6 @@
 
     <!-- SCHERMATA MANUTENZIONE GLOBALE -->
     <div id="maintenance-screen" class="fixed inset-0 z-50 bg-gray-900 text-white hidden flex-col items-center justify-center p-6 text-center relative">
-        <!-- Pulsante di accesso Admin nascosto in alto a destra durante la manutenzione -->
         <button onclick="openAdminLoginFromMaintenance()" class="absolute top-6 right-6 text-xs bg-gray-800 hover:bg-gray-700 text-gray-400 hover:text-white px-3 py-1.5 rounded-lg transition border border-gray-700 flex items-center gap-1.5">
             <i data-lucide="lock" class="w-3.5 h-3.5"></i> Accedi (Admin)
         </button>
@@ -33,7 +32,7 @@
     </div>
 
     <!-- OVERLAY BLOCCO GEOLOCALIZZAZIONE -->
-    <div id="geo-modal" class="fixed inset-0 z-40 bg-black/70 flex items-center justify-center p-4">
+    <div id="geo-modal" class="fixed inset-0 z-40 bg-black/70 hidden items-center justify-center p-4">
         <div class="bg-white rounded-2xl max-w-md w-full p-6 text-center shadow-2xl">
             <div class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4 text-green-600">
                 <i data-lucide="map-pin" class="w-8 h-8"></i>
@@ -266,8 +265,13 @@
         function checkMaintenanceMode() {
             const isMaintenance = localStorage.getItem('albacore_maintenance') === 'true';
             const maintenanceScreen = document.getElementById('maintenance-screen');
+            const geoModal = document.getElementById('geo-modal');
 
             if (isMaintenance && (!currentUser || currentUser.id !== ADMIN_ID)) {
+                // Nascondi la geolocalizzazione se attiva e mostra solo la manutenzione
+                geoModal.classList.remove('flex');
+                geoModal.classList.add('hidden');
+                
                 maintenanceScreen.classList.remove('hidden');
                 maintenanceScreen.classList.add('flex');
             } else {
@@ -280,10 +284,9 @@
             document.getElementById('maintenance-screen').classList.remove('flex');
             document.getElementById('maintenance-screen').classList.add('hidden');
             
-            // Mostra direttamente il modale di login specificando che è riservato all'admin
             showAuthChoice();
             showLoginForm();
-            document.getElementById('auth-subtitle.textContent') = "Accesso riservato Amministratore";
+            document.getElementById('auth-subtitle').textContent = "Accesso riservato Amministratore";
             document.getElementById('auth-modal').classList.remove('hidden');
             document.getElementById('auth-modal').classList.add('flex');
         }
@@ -291,7 +294,7 @@
         function closeAuthModal() {
             document.getElementById('auth-modal').classList.remove('flex');
             document.getElementById('auth-modal').classList.add('hidden');
-            checkMaintenanceMode(); // Riattiva la schermata manutenzione se l'utente non è admin
+            checkMaintenanceMode();
         }
 
         function toggleMaintenance() {
@@ -414,6 +417,7 @@
             document.getElementById('auth-choice-view').classList.remove('hidden');
             document.getElementById('reg-error').textContent = '';
             document.getElementById('login-error').textContent = '';
+            document.getElementById('auth-subtitle').textContent = "La chat ufficiale della community di Alba";
         }
 
         function handleRegister() {
@@ -460,7 +464,6 @@
                 return;
             }
 
-            // Se il sito è in manutenzione, verifica rigorosamente che sia l'admin
             const isMaintenance = localStorage.getItem('albacore_maintenance') === 'true';
             if (isMaintenance && user.id !== ADMIN_ID) {
                 errorEl.textContent = "Sito in manutenzione. Accesso consentito solo all'amministratore.";
