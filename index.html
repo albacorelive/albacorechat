@@ -18,13 +18,18 @@
 <body class="h-screen w-screen overflow-hidden flex flex-col bg-gray-100 font-sans">
 
     <!-- SCHERMATA MANUTENZIONE GLOBALE -->
-    <div id="maintenance-screen" class="fixed inset-0 z-50 bg-gray-900 text-white hidden flex-col items-center justify-center p-6 text-center">
+    <div id="maintenance-screen" class="fixed inset-0 z-50 bg-gray-900 text-white hidden flex-col items-center justify-center p-6 text-center relative">
+        <!-- Pulsante di accesso Admin nascosto in alto a destra durante la manutenzione -->
+        <button onclick="openAdminLoginFromMaintenance()" class="absolute top-6 right-6 text-xs bg-gray-800 hover:bg-gray-700 text-gray-400 hover:text-white px-3 py-1.5 rounded-lg transition border border-gray-700 flex items-center gap-1.5">
+            <i data-lucide="lock" class="w-3.5 h-3.5"></i> Accedi (Admin)
+        </button>
+
         <div class="w-20 h-20 bg-yellow-500/20 text-yellow-500 rounded-full flex items-center justify-center mb-4">
             <i data-lucide="wrench" class="w-10 h-10"></i>
         </div>
         <h1 class="text-3xl font-bold mb-2">Sito in Manutenzione</h1>
         <p class="text-gray-400 max-w-md text-sm mb-6">ALBACORECHAT è temporaneamente chiusa per manutenzione straordinaria. Torneremo online al più presto!</p>
-        <button onclick="checkMaintenanceMode()" class="bg-gray-800 hover:bg-gray-700 text-gray-300 text-xs px-4 py-2 rounded-lg transition border border-gray-700">Riprova accesso</button>
+        <button onclick="checkMaintenanceMode()" class="bg-gray-800 hover:bg-gray-700 text-gray-300 text-xs px-4 py-2 rounded-lg transition border border-gray-700">Aggiorna stato</button>
     </div>
 
     <!-- OVERLAY BLOCCO GEOLOCALIZZAZIONE -->
@@ -46,11 +51,12 @@
 
     <!-- MODALE AUTENTICAZIONE -->
     <div id="auth-modal" class="fixed inset-0 z-30 bg-black/70 hidden items-center justify-center p-4">
-        <div class="bg-white rounded-2xl max-w-md w-full p-8 shadow-2xl flex flex-col">
+        <div class="bg-white rounded-2xl max-w-md w-full p-8 shadow-2xl flex flex-col relative">
+            <button onclick="closeAuthModal()" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600"><i data-lucide="x" class="w-5 h-5"></i></button>
             <div class="text-center mb-6">
                 <img src="logo.png" alt="Logo AlbaCore" class="h-16 w-auto object-contain mx-auto mb-2">
                 <h2 class="text-2xl font-bold text-gray-800">ALBACORECHAT</h2>
-                <p class="text-xs text-gray-500">La chat ufficiale della community di Alba</p>
+                <p id="auth-subtitle" class="text-xs text-gray-500">La chat ufficiale della community di Alba</p>
             </div>
 
             <div id="auth-choice-view" class="space-y-3">
@@ -101,7 +107,7 @@
     <!-- INTERFACCIA PRINCIPALE DELLA CHAT -->
     <div id="app-container" class="hidden flex h-full w-full max-w-7xl mx-auto bg-white shadow-2xl my-auto rounded-none md:rounded-xl overflow-hidden border border-gray-300 relative">
         
-        <!-- PANNELLO ADMIN (Riservato) -->
+        <!-- PANNELLO ADMIN -->
         <div id="admin-panel" class="absolute inset-0 bg-white z-30 flex flex-col transition-transform duration-300 transform -translate-x-full">
             <div class="p-4 bg-gray-900 text-white flex items-center justify-between">
                 <div class="flex items-center gap-3">
@@ -118,10 +124,10 @@
                     <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg border">
                         <div>
                             <span class="block text-sm font-semibold text-gray-700">Modalità Manutenzione</span>
-                            <span id="maintenance-state-label" class="text-xs text-gray-500">Attualmente disattivata</span>
+                            <span id="maintenance-state-label" class="text-xs text-gray-500">Stato attuale</span>
                         </div>
                         <button id="maintenance-toggle-btn" onclick="toggleMaintenance()" class="bg-green-600 hover:bg-green-700 text-white text-xs font-semibold px-4 py-2 rounded-lg transition shadow">
-                            Attiva Manutenzione
+                            Cambia stato
                         </button>
                     </div>
                 </div>
@@ -130,14 +136,12 @@
 
         <!-- SIDEBAR -->
         <div class="w-full md:w-[380px] bg-white border-r border-gray-200 flex flex-col h-full relative">
-            <!-- Header Sidebar -->
             <div class="p-4 bg-gray-100 border-b flex items-center justify-between">
                 <div class="flex items-center gap-3 cursor-pointer" onclick="openAccountSettings()" title="Modifica Profilo">
                     <div id="sidebar-user-avatar" class="w-10 h-10 rounded-full bg-green-700 text-white flex items-center justify-center font-bold overflow-hidden shadow"></div>
                     <span id="current-user-display" class="font-bold text-gray-800 text-sm"></span>
                 </div>
                 <div class="flex items-center gap-2 text-gray-600">
-                    <!-- Pulsante Admin condizionale -->
                     <button id="admin-btn" onclick="openAdminPanel()" title="Pannello Admin" class="hidden hover:text-red-600 transition p-1 bg-red-50 rounded-lg"><i data-lucide="shield-alert" class="w-5 h-5 text-red-600"></i></button>
                     <button onclick="openAccountSettings()" title="Impostazioni Account" class="hover:text-green-600 transition p-1"><i data-lucide="settings" class="w-5 h-5"></i></button>
                     <button onclick="logout(event)" title="Esci" class="hover:text-red-600 transition p-1"><i data-lucide="log-out" class="w-5 h-5"></i></button>
@@ -255,7 +259,6 @@
         let currentUser = null;
         let activeContactId = null;
 
-        // Controllo manutenzione all'avvio
         window.addEventListener('DOMContentLoaded', () => {
             checkMaintenanceMode();
         });
@@ -264,7 +267,6 @@
             const isMaintenance = localStorage.getItem('albacore_maintenance') === 'true';
             const maintenanceScreen = document.getElementById('maintenance-screen');
 
-            // Se è attivo e l'utente loggato non è l'admin, mostra la schermata di manutenzione
             if (isMaintenance && (!currentUser || currentUser.id !== ADMIN_ID)) {
                 maintenanceScreen.classList.remove('hidden');
                 maintenanceScreen.classList.add('flex');
@@ -272,6 +274,24 @@
                 maintenanceScreen.classList.remove('flex');
                 maintenanceScreen.classList.add('hidden');
             }
+        }
+
+        function openAdminLoginFromMaintenance() {
+            document.getElementById('maintenance-screen').classList.remove('flex');
+            document.getElementById('maintenance-screen').classList.add('hidden');
+            
+            // Mostra direttamente il modale di login specificando che è riservato all'admin
+            showAuthChoice();
+            showLoginForm();
+            document.getElementById('auth-subtitle.textContent') = "Accesso riservato Amministratore";
+            document.getElementById('auth-modal').classList.remove('hidden');
+            document.getElementById('auth-modal').classList.add('flex');
+        }
+
+        function closeAuthModal() {
+            document.getElementById('auth-modal').classList.remove('flex');
+            document.getElementById('auth-modal').classList.add('hidden');
+            checkMaintenanceMode(); // Riattiva la schermata manutenzione se l'utente non è admin
         }
 
         function toggleMaintenance() {
@@ -290,10 +310,10 @@
             if (isMaintenance) {
                 label.textContent = "Stato: ATTIVA (Sito chiuso al pubblico)";
                 label.className = "text-xs text-red-600 font-bold";
-                btn.textContent = "Disattiva Manutenzione (Riattiva)";
+                btn.textContent = "Disattiva Manutenzione (Riattiva Sito)";
                 btn.className = "bg-red-600 hover:bg-red-700 text-white text-xs font-semibold px-4 py-2 rounded-lg transition shadow";
             } else {
-                label.textContent = "Stato: Disattivata (Sito online)";
+                label.textContent = "Stato: Disattivata (Sito online per tutti)";
                 label.className = "text-xs text-green-600 font-bold";
                 btn.textContent = "Attiva Manutenzione";
                 btn.className = "bg-green-600 hover:bg-green-700 text-white text-xs font-semibold px-4 py-2 rounded-lg transition shadow";
@@ -440,6 +460,13 @@
                 return;
             }
 
+            // Se il sito è in manutenzione, verifica rigorosamente che sia l'admin
+            const isMaintenance = localStorage.getItem('albacore_maintenance') === 'true';
+            if (isMaintenance && user.id !== ADMIN_ID) {
+                errorEl.textContent = "Sito in manutenzione. Accesso consentito solo all'amministratore.";
+                return;
+            }
+
             loginSuccess(user);
         }
 
@@ -448,13 +475,12 @@
             if(!currentUser.blockedUsers) currentUser.blockedUsers = [];
             if(!currentUser.bio) currentUser.bio = "Ciao! Uso ALBACORECHAT.";
             
-            // Verifica se c'è manutenzione attiva
             checkMaintenanceMode();
 
+            document.getElementById('auth-modal').classList.remove('flex');
             document.getElementById('auth-modal').classList.add('hidden');
             document.getElementById('app-container').classList.remove('hidden');
             
-            // Mostra o nascondi il pulsante admin in base all'ID esatto
             const adminBtn = document.getElementById('admin-btn');
             if (currentUser.id === ADMIN_ID) {
                 adminBtn.classList.remove('hidden');
@@ -466,24 +492,11 @@
             loadContacts();
         }
 
-        function updateUserInterface() {
-            document.getElementById('current-user-display').textContent = currentUser.username;
-            
-            const sidebarAvatar = document.getElementById('sidebar-user-avatar');
-            if (currentUser.avatarUrl) {
-                sidebarAvatar.innerHTML = `<img src="${currentUser.avatarUrl}" class="w-full h-full object-cover">`;
-            } else {
-                sidebarAvatar.textContent = currentUser.avatar;
-            }
-        }
-
         function logout(e) {
             if(e) e.stopPropagation();
             currentUser = null;
             activeContactId = null;
             document.getElementById('app-container').classList.add('hidden');
-            document.getElementById('auth-modal').classList.remove('hidden');
-            showAuthChoice();
             checkMaintenanceMode();
         }
 
