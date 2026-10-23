@@ -19,7 +19,7 @@
 
     <!-- SCHERMATA MANUTENZIONE GLOBALE -->
     <div id="maintenance-screen" class="fixed inset-0 z-50 bg-gray-900 text-white hidden flex-col items-center justify-center p-6 text-center relative">
-        <button onclick="openAdminLoginFromMaintenance()" class="absolute top-6 right-6 text-xs bg-gray-800 hover:bg-gray-700 text-gray-400 hover:text-white px-3 py-1.5 rounded-lg transition border border-gray-700 flex items-center gap-1.5">
+        <button onclick="openAdminLoginFromMaintenance()" class="absolute top-6 right-6 text-xs bg-gray-800 hover:bg-gray-700 text-gray-400 hover:text-white px-3 py-1.5 rounded-lg transition border border-gray-700 flex items-center gap-1.5 cursor-pointer">
             <i data-lucide="lock" class="w-3.5 h-3.5"></i> Accedi (Admin)
         </button>
 
@@ -28,11 +28,11 @@
         </div>
         <h1 class="text-3xl font-bold mb-2">Sito in Manutenzione</h1>
         <p class="text-gray-400 max-w-md text-sm mb-6">ALBACORECHAT è temporaneamente chiusa per manutenzione straordinaria. Torneremo online al più presto!</p>
-        <button onclick="checkMaintenanceMode()" class="bg-gray-800 hover:bg-gray-700 text-gray-300 text-xs px-4 py-2 rounded-lg transition border border-gray-700">Aggiorna stato</button>
+        <button onclick="checkMaintenanceMode()" class="bg-gray-800 hover:bg-gray-700 text-gray-300 text-xs px-4 py-2 rounded-lg transition border border-gray-700 cursor-pointer">Aggiorna stato</button>
     </div>
 
     <!-- OVERLAY BLOCCO GEOLOCALIZZAZIONE -->
-    <div id="geo-modal" class="fixed inset-0 z-40 bg-black/70 hidden items-center justify-center p-4">
+    <div id="geo-modal" class="fixed inset-0 z-40 bg-black/70 flex items-center justify-center p-4">
         <div class="bg-white rounded-2xl max-w-md w-full p-6 text-center shadow-2xl">
             <div class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4 text-green-600">
                 <i data-lucide="map-pin" class="w-8 h-8"></i>
@@ -42,7 +42,7 @@
                 ALBACORECHAT è riservata esclusivamente a chi si trova ad **Alba (CN)**. Verifica la tua posizione per procedere.
             </p>
             <div id="geo-status" class="text-sm font-medium text-gray-500 mb-4"></div>
-            <button onclick="checkGeolocation()" id="geo-btn" class="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-3 rounded-xl transition duration-200 shadow-md">
+            <button onclick="checkGeolocation()" id="geo-btn" class="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-3 rounded-xl transition duration-200 shadow-md cursor-pointer">
                 Verifica la mia posizione
             </button>
         </div>
@@ -51,7 +51,7 @@
     <!-- MODALE AUTENTICAZIONE -->
     <div id="auth-modal" class="fixed inset-0 z-30 bg-black/70 hidden items-center justify-center p-4">
         <div class="bg-white rounded-2xl max-w-md w-full p-8 shadow-2xl flex flex-col relative">
-            <button onclick="closeAuthModal()" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600"><i data-lucide="x" class="w-5 h-5"></i></button>
+            <button onclick="closeAuthModal()" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600 cursor-pointer"><i data-lucide="x" class="w-5 h-5"></i></button>
             <div class="text-center mb-6">
                 <img src="logo.png" alt="Logo AlbaCore" class="h-16 w-auto object-contain mx-auto mb-2">
                 <h2 class="text-2xl font-bold text-gray-800">ALBACORECHAT</h2>
@@ -59,10 +59,10 @@
             </div>
 
             <div id="auth-choice-view" class="space-y-3">
-                <button onclick="showRegisterForm()" class="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-3 rounded-xl transition shadow-md">
+                <button onclick="showRegisterForm()" class="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-3 rounded-xl transition shadow-md cursor-pointer">
                     Crea il tuo account
                 </button>
-                <button onclick="showLoginForm()" class="w-full bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold py-3 rounded-xl transition">
+                <button onclick="showLoginForm()" class="w-full bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold py-3 rounded-xl transition cursor-pointer">
                     Accedi con il tuo account
                 </button>
             </div>
@@ -78,10 +78,10 @@
                     <input type="password" id="reg-password" class="w-full bg-gray-50 border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500" placeholder="Scegli una password...">
                 </div>
                 <p id="reg-error" class="text-xs text-red-500 text-center h-4"></p>
-                <button onclick="handleRegister()" class="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-2.5 rounded-xl transition shadow-md">
+                <button onclick="handleRegister()" class="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-2.5 rounded-xl transition shadow-md cursor-pointer">
                     Registrati
                 </button>
-                <button onclick="showAuthChoice()" class="w-full text-xs text-gray-500 hover:underline text-center">Indietro</button>
+                <button onclick="showAuthChoice()" class="w-full text-xs text-gray-500 hover:underline text-center cursor-pointer">Indietro</button>
             </div>
 
             <div id="login-view" class="hidden space-y-4">
@@ -95,10 +95,10 @@
                     <input type="password" id="login-password" class="w-full bg-gray-50 border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500" placeholder="La tua password...">
                 </div>
                 <p id="login-error" class="text-xs text-red-500 text-center h-4"></p>
-                <button onclick="handleLogin()" class="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-2.5 rounded-xl transition shadow-md">
+                <button onclick="handleLogin()" class="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-2.5 rounded-xl transition shadow-md cursor-pointer">
                     Accedi
                 </button>
-                <button onclick="showAuthChoice()" class="w-full text-xs text-gray-500 hover:underline text-center">Indietro</button>
+                <button onclick="showAuthChoice()" class="w-full text-xs text-gray-500 hover:underline text-center cursor-pointer">Indietro</button>
             </div>
         </div>
     </div>
@@ -110,7 +110,7 @@
         <div id="admin-panel" class="absolute inset-0 bg-white z-30 flex flex-col transition-transform duration-300 transform -translate-x-full">
             <div class="p-4 bg-gray-900 text-white flex items-center justify-between">
                 <div class="flex items-center gap-3">
-                    <button onclick="closeAdminPanel()" class="hover:bg-gray-800 p-1 rounded-full"><i data-lucide="arrow-left" class="w-6 h-6"></i></button>
+                    <button onclick="closeAdminPanel()" class="hover:bg-gray-800 p-1 rounded-full cursor-pointer"><i data-lucide="arrow-left" class="w-6 h-6"></i></button>
                     <h2 class="font-bold text-lg">Pannello Amministratore</h2>
                 </div>
                 <span class="text-xs bg-red-500/20 text-red-400 px-2 py-1 rounded font-mono">ADMIN ACCESS</span>
@@ -125,7 +125,7 @@
                             <span class="block text-sm font-semibold text-gray-700">Modalità Manutenzione</span>
                             <span id="maintenance-state-label" class="text-xs text-gray-500">Stato attuale</span>
                         </div>
-                        <button id="maintenance-toggle-btn" onclick="toggleMaintenance()" class="bg-green-600 hover:bg-green-700 text-white text-xs font-semibold px-4 py-2 rounded-lg transition shadow">
+                        <button id="maintenance-toggle-btn" onclick="toggleMaintenance()" class="bg-green-600 hover:bg-green-700 text-white text-xs font-semibold px-4 py-2 rounded-lg transition shadow cursor-pointer">
                             Cambia stato
                         </button>
                     </div>
@@ -141,16 +141,16 @@
                     <span id="current-user-display" class="font-bold text-gray-800 text-sm"></span>
                 </div>
                 <div class="flex items-center gap-2 text-gray-600">
-                    <button id="admin-btn" onclick="openAdminPanel()" title="Pannello Admin" class="hidden hover:text-red-600 transition p-1 bg-red-50 rounded-lg"><i data-lucide="shield-alert" class="w-5 h-5 text-red-600"></i></button>
-                    <button onclick="openAccountSettings()" title="Impostazioni Account" class="hover:text-green-600 transition p-1"><i data-lucide="settings" class="w-5 h-5"></i></button>
-                    <button onclick="logout(event)" title="Esci" class="hover:text-red-600 transition p-1"><i data-lucide="log-out" class="w-5 h-5"></i></button>
+                    <button id="admin-btn" onclick="openAdminPanel()" title="Pannello Admin" class="hidden hover:text-red-600 transition p-1 bg-red-50 rounded-lg cursor-pointer"><i data-lucide="shield-alert" class="w-5 h-5 text-red-600"></i></button>
+                    <button onclick="openAccountSettings()" title="Impostazioni Account" class="hover:text-green-600 transition p-1 cursor-pointer"><i data-lucide="settings" class="w-5 h-5"></i></button>
+                    <button onclick="logout(event)" title="Esci" class="hover:text-red-600 transition p-1 cursor-pointer"><i data-lucide="log-out" class="w-5 h-5"></i></button>
                 </div>
             </div>
 
             <!-- Pannello Impostazioni Account -->
             <div id="account-settings-panel" class="absolute inset-0 bg-white z-20 flex flex-col transition-transform duration-300 transform -translate-x-full">
                 <div class="p-4 bg-green-700 text-white flex items-center gap-4">
-                    <button onclick="closeAccountSettings()" class="hover:bg-green-800 p-1 rounded-full"><i data-lucide="arrow-left" class="w-6 h-6"></i></button>
+                    <button onclick="closeAccountSettings()" class="hover:bg-green-800 p-1 rounded-full cursor-pointer"><i data-lucide="arrow-left" class="w-6 h-6"></i></button>
                     <h2 class="font-bold text-lg">Profilo e Account</h2>
                 </div>
                 <div class="flex-1 overflow-y-auto p-6 space-y-6 bg-gray-50">
@@ -166,7 +166,7 @@
                         <label class="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1">ID Univoco Account</label>
                         <div class="flex items-center justify-between gap-2">
                             <p id="settings-user-id" class="text-xs font-mono text-gray-700 select-all truncate"></p>
-                            <button onclick="copyUserId()" class="bg-gray-100 hover:bg-green-100 hover:text-green-700 text-gray-600 text-xs font-semibold px-2.5 py-1.5 rounded transition shrink-0 flex items-center gap-1">
+                            <button onclick="copyUserId()" class="bg-gray-100 hover:bg-green-100 hover:text-green-700 text-gray-600 text-xs font-semibold px-2.5 py-1.5 rounded transition shrink-0 flex items-center gap-1 cursor-pointer">
                                 <i data-lucide="copy" class="w-3.5 h-3.5"></i> Copia
                             </button>
                         </div>
@@ -190,24 +190,24 @@
                         </div>
                     </div>
 
-                    <button onclick="saveAccountSettings()" class="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-3 rounded-xl transition shadow-md">
+                    <button onclick="saveAccountSettings()" class="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-3 rounded-xl transition shadow-md cursor-pointer">
                         Salva Modifiche
                     </button>
                     <p id="settings-save-feedback" class="text-xs text-center text-green-600 font-medium h-4"></p>
                 </div>
             </div>
 
-            <!-- Cerca Contatti per ID -->
+            <!-- Cerca Contatti per ID o Nome -->
             <div class="p-2 bg-white border-b">
                 <div class="flex items-center bg-gray-100 rounded-lg px-3 py-1.5">
                     <i data-lucide="search" class="w-4 h-4 text-gray-400 mr-2"></i>
-                    <input type="text" id="search-input" oninput="filterContacts()" placeholder="Cerca utente inserendo l'ID..." class="bg-transparent text-sm w-full focus:outline-none text-gray-700">
+                    <input type="text" id="search-input" oninput="filterContacts()" placeholder="Cerca per ID o nome utente..." class="bg-transparent text-sm w-full focus:outline-none text-gray-700">
                 </div>
             </div>
 
             <!-- Lista Contatti -->
             <div id="contacts-list" class="flex-1 overflow-y-auto divide-y divide-gray-100">
-                <div class="p-6 text-center text-gray-400 text-sm">Nessuna chat attiva. Cerca un utente tramite ID per iniziare.</div>
+                <div class="p-6 text-center text-gray-400 text-sm">Nessuna chat attiva. Cerca un utente tramite ID o nome.</div>
             </div>
         </div>
 
@@ -231,7 +231,7 @@
                         </div>
                     </div>
                     <div>
-                        <button onclick="toggleBlockUser()" id="block-btn-header" class="text-xs bg-red-100 hover:bg-red-200 text-red-700 font-semibold px-3 py-1.5 rounded-lg transition">Blocca utente</button>
+                        <button onclick="toggleBlockUser()" id="block-btn-header" class="text-xs bg-red-100 hover:bg-red-200 text-red-700 font-semibold px-3 py-1.5 rounded-lg transition cursor-pointer">Blocca utente</button>
                     </div>
                 </div>
 
@@ -239,7 +239,7 @@
 
                 <div class="p-3 bg-gray-100 border-b flex items-center gap-3">
                     <input type="text" id="message-input" placeholder="Scrivi un messaggio..." class="flex-1 bg-white rounded-lg px-4 py-2 text-sm focus:outline-none shadow-sm" onkeypress="handleKeyPress(event)">
-                    <button onclick="sendMessage()" class="bg-green-600 hover:bg-green-700 text-white p-2 rounded-lg transition">
+                    <button onclick="sendMessage()" class="bg-green-600 hover:bg-green-700 text-white p-2 rounded-lg transition cursor-pointer">
                         <i data-lucide="send" class="w-5 h-5"></i>
                     </button>
                 </div>
@@ -268,7 +268,6 @@
             const geoModal = document.getElementById('geo-modal');
 
             if (isMaintenance && (!currentUser || currentUser.id !== ADMIN_ID)) {
-                // Nascondi la geolocalizzazione se attiva e mostra solo la manutenzione
                 geoModal.classList.remove('flex');
                 geoModal.classList.add('hidden');
                 
@@ -277,6 +276,12 @@
             } else {
                 maintenanceScreen.classList.remove('flex');
                 maintenanceScreen.classList.add('hidden');
+                
+                // Se non c'è manutenzione e l'utente non è loggato, mostra la geolocalizzazione
+                if (!currentUser) {
+                    geoModal.classList.remove('hidden');
+                    geoModal.classList.add('flex');
+                }
             }
         }
 
@@ -314,12 +319,12 @@
                 label.textContent = "Stato: ATTIVA (Sito chiuso al pubblico)";
                 label.className = "text-xs text-red-600 font-bold";
                 btn.textContent = "Disattiva Manutenzione (Riattiva Sito)";
-                btn.className = "bg-red-600 hover:bg-red-700 text-white text-xs font-semibold px-4 py-2 rounded-lg transition shadow";
+                btn.className = "bg-red-600 hover:bg-red-700 text-white text-xs font-semibold px-4 py-2 rounded-lg transition shadow cursor-pointer";
             } else {
                 label.textContent = "Stato: Disattivata (Sito online per tutti)";
                 label.className = "text-xs text-green-600 font-bold";
                 btn.textContent = "Attiva Manutenzione";
-                btn.className = "bg-green-600 hover:bg-green-700 text-white text-xs font-semibold px-4 py-2 rounded-lg transition shadow";
+                btn.className = "bg-green-600 hover:bg-green-700 text-white text-xs font-semibold px-4 py-2 rounded-lg transition shadow cursor-pointer";
             }
         }
 
@@ -374,6 +379,7 @@
                         statusEl.textContent = "Posizione verificata!";
                         statusEl.className = "text-sm font-medium text-green-600 mb-4";
                         setTimeout(() => {
+                            document.getElementById('geo-modal').classList.remove('flex');
                             document.getElementById('geo-modal').classList.add('hidden');
                             document.getElementById('auth-modal').classList.remove('hidden');
                             document.getElementById('auth-modal').classList.add('flex');
@@ -591,7 +597,7 @@
                     row.className = "flex justify-between items-center bg-gray-50 p-1.5 rounded border mb-1";
                     row.innerHTML = `
                         <span class="text-xs font-medium text-gray-700">${bUser.username}</span>
-                        <button onclick="unblockUser('${bUser.id}')" class="text-[10px] bg-gray-200 hover:bg-red-100 hover:text-red-700 px-2 py-0.5 rounded transition">Sblocca</button>
+                        <button onclick="unblockUser('${bUser.id}')" class="text-[10px] bg-gray-200 hover:bg-red-100 hover:text-red-700 px-2 py-0.5 rounded transition cursor-pointer">Sblocca</button>
                     `;
                     container.appendChild(row);
                 }
@@ -629,10 +635,10 @@
             const btn = document.getElementById('block-btn-header');
             if (currentUser.blockedUsers && currentUser.blockedUsers.includes(activeContactId)) {
                 btn.textContent = "Sblocca utente";
-                btn.className = "text-xs bg-green-100 hover:bg-green-200 text-green-700 font-semibold px-3 py-1.5 rounded-lg transition";
+                btn.className = "text-xs bg-green-100 hover:bg-green-200 text-green-700 font-semibold px-3 py-1.5 rounded-lg transition cursor-pointer";
             } else {
                 btn.textContent = "Blocca utente";
-                btn.className = "text-xs bg-red-100 hover:bg-red-200 text-red-700 font-semibold px-3 py-1.5 rounded-lg transition";
+                btn.className = "text-xs bg-red-100 hover:bg-red-200 text-red-700 font-semibold px-3 py-1.5 rounded-lg transition cursor-pointer";
             }
         }
 
@@ -655,13 +661,14 @@
             
             let displayUsers = [];
             if (searchQuery) {
-                displayUsers = users.filter(u => u.id !== currentUser.id && u.id.toLowerCase().includes(searchQuery));
+                // Cerca sia per ID che per Nome Utente
+                displayUsers = users.filter(u => u.id !== currentUser.id && (u.id.toLowerCase().includes(searchQuery) || u.username.toLowerCase().includes(searchQuery)));
             } else {
                 displayUsers = users.filter(u => chattedUserIds.has(u.id));
             }
 
             if (displayUsers.length === 0) {
-                listContainer.innerHTML = `<div class="p-6 text-center text-gray-400 text-sm">${searchQuery ? 'Nessun utente trovato con questo ID.' : 'Nessuna chat attiva. Cerca un utente tramite ID.'}</div>`;
+                listContainer.innerHTML = `<div class="p-6 text-center text-gray-400 text-sm">${searchQuery ? 'Nessun utente trovato con questo ID o nome.' : 'Nessuna chat attiva. Cerca un utente tramite ID.'}</div>`;
                 return;
             }
 
