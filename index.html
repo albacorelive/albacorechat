@@ -6,6 +6,9 @@
     <title>ALBACORECHAT - La chat di Alba</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- Firebase App & Firestore SDK (v8 Compat) -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
     <style>
         .wa-chat-bg {
             background-color: #efeae2;
@@ -197,7 +200,7 @@
                 </div>
             </div>
 
-            <!-- Cerca Contatti per ID o Nome -->
+            <!-- Cerca Contatti -->
             <div class="p-2 bg-white border-b">
                 <div class="flex items-center bg-gray-100 rounded-lg px-3 py-1.5">
                     <i data-lucide="search" class="w-4 h-4 text-gray-400 mr-2"></i>
@@ -248,6 +251,20 @@
     </div>
 
     <script>
+        // CONFIGURAZIONE FIREBASE UFFICIALE
+        const firebaseConfig = {
+            apiKey: "AIzaSyBhOuUMJpZ3LiQIBFoakWyKYcfihaq4ju0",
+            authDomain: "albacorechat.firebaseapp.com",
+            projectId: "albacorechat",
+            storageBucket: "albacorechat.firebasestorage.app",
+            messagingSenderId: "259662424905",
+            appId: "1:259662424905:web:1e154a44bf37ceac728898",
+            measurementId: "G-M55EFV151T"
+        };
+
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+
         lucide.createIcons();
 
         const ALBA_LAT = 44.6925;
@@ -257,38 +274,41 @@
 
         let currentUser = null;
         let activeContactId = null;
+        let messagesUnsubscribe = null;
 
         window.addEventListener('DOMContentLoaded', () => {
             checkMaintenanceMode();
         });
 
         function checkMaintenanceMode() {
-            const isMaintenance = localStorage.getItem('albacore_maintenance') === 'true';
-            const maintenanceScreen = document.getElementById('maintenance-screen');
-            const geoModal = document.getElementById('geo-modal');
-
-            if (isMaintenance && (!currentUser || currentUser.id !== ADMIN_ID)) {
-                geoModal.classList.remove('flex');
-                geoModal.classList.add('hidden');
-                
-                maintenanceScreen.classList.remove('hidden');
-                maintenanceScreen.classList.add('flex');
-            } else {
-                maintenanceScreen.classList.remove('flex');
-                maintenanceScreen.classList.add('hidden');
-                
-                // Se non c'è manutenzione e l'utente non è loggato, mostra la geolocalizzazione
-                if (!currentUser) {
-                    geoModal.classList.remove('hidden');
-                    geoModal.classList.add('flex');
+            db.collection("settings").doc("config").get().then((doc) => {
+                let isMaintenance = false;
+                if (doc.exists) {
+                    isMaintenance = doc.data().maintenance === true;
                 }
-            }
+                
+                const maintenanceScreen = document.getElementById('maintenance-screen');
+                const geoModal = document.getElementById('geo-modal');
+
+                if (isMaintenance && (!currentUser || currentUser.id !== ADMIN_ID)) {
+                    geoModal.classList.remove('flex');
+                    geoModal.classList.add('hidden');
+                    maintenanceScreen.classList.remove('hidden');
+                    maintenanceScreen.classList.add('flex');
+                } else {
+                    maintenanceScreen.classList.remove('flex');
+                    maintenanceScreen.classList.add('hidden');
+                    if (!currentUser) {
+                        geoModal.classList.remove('hidden');
+                        geoModal.classList.add('flex');
+                    }
+                }
+            });
         }
 
         function openAdminLoginFromMaintenance() {
             document.getElementById('maintenance-screen').classList.remove('flex');
             document.getElementById('maintenance-screen').classList.add('hidden');
-            
             showAuthChoice();
             showLoginForm();
             document.getElementById('auth-subtitle').textContent = "Accesso riservato Amministratore";
@@ -304,28 +324,33 @@
 
         function toggleMaintenance() {
             if (!currentUser || currentUser.id !== ADMIN_ID) return;
-            const current = localStorage.getItem('albacore_maintenance') === 'true';
-            localStorage.setItem('albacore_maintenance', !current);
-            updateAdminPanelUI();
-            checkMaintenanceMode();
+            db.collection("settings").doc("config").get().then((doc) => {
+                const current = doc.exists ? doc.data().maintenance === true : false;
+                db.collection("settings").doc("config").set({ maintenance: !current }).then(() => {
+                    updateAdminPanelUI();
+                    checkMaintenanceMode();
+                });
+            });
         }
 
         function updateAdminPanelUI() {
-            const isMaintenance = localStorage.getItem('albacore_maintenance') === 'true';
-            const label = document.getElementById('maintenance-state-label');
-            const btn = document.getElementById('maintenance-toggle-btn');
+            db.collection("settings").doc("config").get().then((doc) => {
+                const isMaintenance = doc.exists ? doc.data().maintenance === true : false;
+                const label = document.getElementById('maintenance-state-label');
+                const btn = document.getElementById('maintenance-toggle-btn');
 
-            if (isMaintenance) {
-                label.textContent = "Stato: ATTIVA (Sito chiuso al pubblico)";
-                label.className = "text-xs text-red-600 font-bold";
-                btn.textContent = "Disattiva Manutenzione (Riattiva Sito)";
-                btn.className = "bg-red-600 hover:bg-red-700 text-white text-xs font-semibold px-4 py-2 rounded-lg transition shadow cursor-pointer";
-            } else {
-                label.textContent = "Stato: Disattivata (Sito online per tutti)";
-                label.className = "text-xs text-green-600 font-bold";
-                btn.textContent = "Attiva Manutenzione";
-                btn.className = "bg-green-600 hover:bg-green-700 text-white text-xs font-semibold px-4 py-2 rounded-lg transition shadow cursor-pointer";
-            }
+                if (isMaintenance) {
+                    label.textContent = "Stato: ATTIVA (Sito chiuso al pubblico)";
+                    label.className = "text-xs text-red-600 font-bold";
+                    btn.textContent = "Disattiva Manutenzione (Riattiva Sito)";
+                    btn.className = "bg-red-600 hover:bg-red-700 text-white text-xs font-semibold px-4 py-2 rounded-lg transition shadow cursor-pointer";
+                } else {
+                    label.textContent = "Stato: Disattivata (Sito online per tutti)";
+                    label.className = "text-xs text-green-600 font-bold";
+                    btn.textContent = "Attiva Manutenzione";
+                    btn.className = "bg-green-600 hover:bg-green-700 text-white text-xs font-semibold px-4 py-2 rounded-lg transition shadow cursor-pointer";
+                }
+            });
         }
 
         function openAdminPanel() {
@@ -340,22 +365,6 @@
             const panel = document.getElementById('admin-panel');
             panel.classList.remove('translate-x-0');
             panel.classList.add('-translate-x-full');
-        }
-
-        function getUsers() {
-            return JSON.parse(localStorage.getItem('albacore_users')) || [];
-        }
-
-        function saveUsers(users) {
-            localStorage.setItem('albacore_users', JSON.stringify(users));
-        }
-
-        function getMessages() {
-            return JSON.parse(localStorage.getItem('albacore_messages')) || {};
-        }
-
-        function saveMessages(msgs) {
-            localStorage.setItem('albacore_messages', JSON.stringify(msgs));
         }
 
         function checkGeolocation() {
@@ -426,7 +435,7 @@
             document.getElementById('auth-subtitle').textContent = "La chat ufficiale della community di Alba";
         }
 
-        function handleRegister() {
+        async function handleRegister() {
             const username = document.getElementById('reg-username').value.trim();
             const password = document.getElementById('reg-password').value;
             const errorEl = document.getElementById('reg-error');
@@ -436,15 +445,18 @@
                 return;
             }
 
-            let users = getUsers();
-            if (users.some(u => u.username.toLowerCase() === username.toLowerCase())) {
+            const usersRef = db.collection("users");
+            const snapshot = await usersRef.where("usernameLower", "==", username.toLowerCase()).get();
+            if (!snapshot.empty) {
                 errorEl.textContent = "Nome utente già esistente. Scegline un altro.";
                 return;
             }
 
+            const userId = 'usr_' + Date.now() + Math.floor(Math.random() * 1000);
             const newUser = {
-                id: 'usr_' + Date.now() + Math.floor(Math.random() * 1000),
+                id: userId,
                 username: username,
+                usernameLower: username.toLowerCase(),
                 password: password,
                 bio: "Ciao! Uso ALBACORECHAT.",
                 avatar: username.substring(0, 2).toUpperCase(),
@@ -452,25 +464,35 @@
                 blockedUsers: []
             };
 
-            users.push(newUser);
-            saveUsers(users);
+            await usersRef.doc(userId).set(newUser);
             loginSuccess(newUser);
         }
 
-        function handleLogin() {
+        async function handleLogin() {
             const username = document.getElementById('login-username').value.trim();
             const password = document.getElementById('login-password').value;
             const errorEl = document.getElementById('login-error');
 
-            let users = getUsers();
-            const user = users.find(u => u.username.toLowerCase() === username.toLowerCase() && u.password === password);
+            const snapshot = await db.collection("users").where("usernameLower", "==", username.toLowerCase()).get();
+            if (snapshot.empty) {
+                errorEl.textContent = "Nome utente o password errati.";
+                return;
+            }
+
+            let user = null;
+            snapshot.forEach(doc => {
+                if (doc.data().password === password) {
+                    user = doc.data();
+                }
+            });
 
             if (!user) {
                 errorEl.textContent = "Nome utente o password errati.";
                 return;
             }
 
-            const isMaintenance = localStorage.getItem('albacore_maintenance') === 'true';
+            const docConfig = await db.collection("settings").doc("config").get();
+            const isMaintenance = docConfig.exists && docConfig.data().maintenance === true;
             if (isMaintenance && user.id !== ADMIN_ID) {
                 errorEl.textContent = "Sito in manutenzione. Accesso consentito solo all'amministratore.";
                 return;
@@ -505,6 +527,7 @@
             if(e) e.stopPropagation();
             currentUser = null;
             activeContactId = null;
+            if (messagesUnsubscribe) messagesUnsubscribe();
             document.getElementById('app-container').classList.add('hidden');
             checkMaintenanceMode();
         }
@@ -542,7 +565,7 @@
             });
         }
 
-        function saveAccountSettings() {
+        async function saveAccountSettings() {
             const newUsername = document.getElementById('settings-username-input').value.trim();
             const newBio = document.getElementById('settings-bio-input').value.trim();
             const newAvatarUrl = document.getElementById('settings-avatar-url').value.trim();
@@ -554,20 +577,25 @@
                 return;
             }
 
-            let users = getUsers();
-            if (users.some(u => u.username.toLowerCase() === newUsername.toLowerCase() && u.id !== currentUser.id)) {
+            const snapshot = await db.collection("users").where("usernameLower", "==", newUsername.toLowerCase()).get();
+            let nameTaken = false;
+            snapshot.forEach(doc => {
+                if (doc.data().id !== currentUser.id) nameTaken = true;
+            });
+
+            if (nameTaken) {
                 feedbackEl.textContent = "Nome utente già in uso.";
                 feedbackEl.className = "text-xs text-center text-red-500 font-medium h-4";
                 return;
             }
 
             currentUser.username = newUsername;
+            currentUser.usernameLower = newUsername.toLowerCase();
             currentUser.bio = newBio;
             currentUser.avatarUrl = newAvatarUrl;
             currentUser.avatar = newUsername.substring(0, 2).toUpperCase();
 
-            users = users.map(u => u.id === currentUser.id ? currentUser : u);
-            saveUsers(users);
+            await db.collection("users").doc(currentUser.id).set(currentUser, { merge: true });
 
             updateUserInterface();
             feedbackEl.textContent = "Modifiche salvate con successo!";
@@ -580,7 +608,7 @@
             }, 1000);
         }
 
-        function renderBlockedUsersList() {
+        async function renderBlockedUsersList() {
             const container = document.getElementById('blocked-users-list');
             container.innerHTML = '';
 
@@ -589,10 +617,10 @@
                 return;
             }
 
-            const users = getUsers();
-            currentUser.blockedUsers.forEach(blockedId => {
-                const bUser = users.find(u => u.id === blockedId);
-                if (bUser) {
+            for (let blockedId of currentUser.blockedUsers) {
+                const doc = await db.collection("users").doc(blockedId).get();
+                if (doc.exists) {
+                    const bUser = doc.data();
                     const row = document.createElement('div');
                     row.className = "flex justify-between items-center bg-gray-50 p-1.5 rounded border mb-1";
                     row.innerHTML = `
@@ -601,10 +629,10 @@
                     `;
                     container.appendChild(row);
                 }
-            });
+            }
         }
 
-        function toggleBlockUser() {
+        async function toggleBlockUser() {
             if (!activeContactId) return;
             if (!currentUser.blockedUsers) currentUser.blockedUsers = [];
 
@@ -615,18 +643,13 @@
                 currentUser.blockedUsers.push(activeContactId);
             }
 
-            let users = getUsers();
-            users = users.map(u => u.id === currentUser.id ? currentUser : u);
-            saveUsers(users);
-
+            await db.collection("users").doc(currentUser.id).update({ blockedUsers: currentUser.blockedUsers });
             updateBlockButtonState();
         }
 
-        function unblockUser(id) {
+        async function unblockUser(id) {
             currentUser.blockedUsers = currentUser.blockedUsers.filter(bId => bId !== id);
-            let users = getUsers();
-            users = users.map(u => u.id === currentUser.id ? currentUser : u);
-            saveUsers(users);
+            await db.collection("users").doc(currentUser.id).update({ blockedUsers: currentUser.blockedUsers });
             renderBlockedUsersList();
             updateBlockButtonState();
         }
@@ -642,33 +665,33 @@
             }
         }
 
-        function loadContacts() {
-            const users = getUsers();
-            const allMessages = getMessages();
+        async function loadContacts() {
             const listContainer = document.getElementById('contacts-list');
-            listContainer.innerHTML = '';
-
-            const chattedUserIds = new Set();
-            Object.keys(allMessages).forEach(key => {
-                if (key.includes(currentUser.id)) {
-                    const ids = key.split('_');
-                    const otherId = ids[0] === currentUser.id ? ids[1] : ids[0];
-                    chattedUserIds.add(otherId);
-                }
-            });
-
             const searchQuery = document.getElementById('search-input').value.trim().toLowerCase();
-            
+
+            const usersSnap = await db.collection("users").get();
+            let users = [];
+            usersSnap.forEach(doc => users.push(doc.data()));
+
             let displayUsers = [];
             if (searchQuery) {
-                // Cerca sia per ID che per Nome Utente
                 displayUsers = users.filter(u => u.id !== currentUser.id && (u.id.toLowerCase().includes(searchQuery) || u.username.toLowerCase().includes(searchQuery)));
             } else {
-                displayUsers = users.filter(u => chattedUserIds.has(u.id));
+                const messagesSnap = await db.collection("messages").get();
+                const chattedIds = new Set();
+                messagesSnap.forEach(doc => {
+                    const parts = doc.id.split('_');
+                    if (parts.includes(currentUser.id)) {
+                        const other = parts[1] === currentUser.id ? parts[2] : parts[1];
+                        chattedIds.add(other);
+                    }
+                });
+                displayUsers = users.filter(u => chattedIds.has(u.id));
             }
 
+            listContainer.innerHTML = '';
             if (displayUsers.length === 0) {
-                listContainer.innerHTML = `<div class="p-6 text-center text-gray-400 text-sm">${searchQuery ? 'Nessun utente trovato con questo ID o nome.' : 'Nessuna chat attiva. Cerca un utente tramite ID.'}</div>`;
+                listContainer.innerHTML = `<div class="p-6 text-center text-gray-400 text-sm">${searchQuery ? 'Nessun utente trovato.' : 'Nessuna chat attiva. Cerca un utente tramite ID.'}</div>`;
                 return;
             }
 
@@ -700,10 +723,10 @@
             loadContacts();
         }
 
-        function selectContact(id) {
+        async function selectContact(id) {
             activeContactId = id;
-            const users = getUsers();
-            const contact = users.find(u => u.id === id);
+            const doc = await db.collection("users").doc(id).get();
+            const contact = doc.data();
 
             document.getElementById('welcome-screen').classList.add('hidden');
             const activeChat = document.getElementById('active-chat');
@@ -720,37 +743,41 @@
             }
 
             updateBlockButtonState();
-            renderMessages();
+            listenMessages();
         }
 
         function getChatKey(id1, id2) {
-            return [id1, id2].sort().join('_');
+            return "chat_" + [id1, id2].sort().join('_');
         }
 
-        function renderMessages() {
-            const container = document.getElementById('messages-container');
-            container.innerHTML = '';
+        function listenMessages() {
+            if (messagesUnsubscribe) messagesUnsubscribe();
 
-            const allMessages = getMessages();
             const chatKey = getChatKey(currentUser.id, activeContactId);
-            const chatMessages = allMessages[chatKey] || [];
+            messagesUnsubscribe = db.collection("messages").doc(chatKey).onSnapshot((doc) => {
+                const container = document.getElementById('messages-container');
+                container.innerHTML = '';
 
-            chatMessages.forEach(msg => {
-                const bubble = document.createElement('div');
-                const isMe = msg.senderId === currentUser.id;
-                bubble.className = `max-w-[70%] rounded-lg p-3 text-sm shadow-sm relative ${
-                    isMe ? 'bg-[#d9fdd3] ml-auto rounded-tr-none' : 'bg-white mr-auto rounded-tl-none'
-                }`;
-                bubble.innerHTML = `
-                    <p class="text-gray-800">${msg.text}</p>
-                    <span class="text-[10px] text-gray-400 block text-right mt-1">${msg.time}</span>
-                `;
-                container.appendChild(bubble);
+                if (!doc.exists) return;
+                const chatMessages = doc.data().messages || [];
+
+                chatMessages.forEach(msg => {
+                    const bubble = document.createElement('div');
+                    const isMe = msg.senderId === currentUser.id;
+                    bubble.className = `max-w-[70%] rounded-lg p-3 text-sm shadow-sm relative ${
+                        isMe ? 'bg-[#d9fdd3] ml-auto rounded-tr-none' : 'bg-white mr-auto rounded-tl-none'
+                    }`;
+                    bubble.innerHTML = `
+                        <p class="text-gray-800">${msg.text}</p>
+                        <span class="text-[10px] text-gray-400 block text-right mt-1">${msg.time}</span>
+                    `;
+                    container.appendChild(bubble);
+                });
+                container.scrollTop = container.scrollHeight;
             });
-            container.scrollTop = container.scrollHeight;
         }
 
-        function sendMessage() {
+        async function sendMessage() {
             if (currentUser.blockedUsers && currentUser.blockedUsers.includes(activeContactId)) {
                 alert("Non puoi inviare messaggi a un utente che hai bloccato.");
                 return;
@@ -763,22 +790,24 @@
             const now = new Date();
             const timeStr = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
 
-            const allMessages = getMessages();
             const chatKey = getChatKey(currentUser.id, activeContactId);
-            
-            if (!allMessages[chatKey]) {
-                allMessages[chatKey] = [];
-            }
+            const msgRef = db.collection("messages").doc(chatKey);
 
-            allMessages[chatKey].push({
-                senderId: currentUser.id,
-                text: text,
-                time: timeStr
+            await db.runTransaction(async (transaction) => {
+                const doc = await transaction.get(msgRef);
+                let messages = [];
+                if (doc.exists) {
+                    messages = doc.data().messages || [];
+                }
+                messages.push({
+                    senderId: currentUser.id,
+                    text: text,
+                    time: timeStr
+                });
+                transaction.set(msgRef, { messages: messages });
             });
 
-            saveMessages(allMessages);
             input.value = '';
-            renderMessages();
             loadContacts();
         }
 
