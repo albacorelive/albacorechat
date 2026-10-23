@@ -275,6 +275,8 @@
         let currentUser = null;
         let activeContactId = null;
         let messagesUnsubscribe = null;
+        let contactsUnsubscribe = null;
+        let allUsersCache = [];
 
         window.addEventListener('DOMContentLoaded', () => {
             checkMaintenanceMode();
@@ -501,7 +503,7 @@
             loginSuccess(user);
         }
 
-        function loginSuccess(user) {
+        async function loginSuccess(user) {
             currentUser = user;
             if(!currentUser.blockedUsers) currentUser.blockedUsers = [];
             if(!currentUser.bio) currentUser.bio = "Ciao! Uso ALBACORECHAT.";
@@ -520,7 +522,8 @@
             }
 
             updateUserInterface();
-            loadContacts();
+            await fetchAllUsersCache();
+            initRealtimeContacts();
         }
 
         function logout(e) {
@@ -528,6 +531,7 @@
             currentUser = null;
             activeContactId = null;
             if (messagesUnsubscribe) messagesUnsubscribe();
+            if (contactsUnsubscribe) contactsUnsubscribe();
             document.getElementById('app-container').classList.add('hidden');
             checkMaintenanceMode();
         }
@@ -598,13 +602,14 @@
             await db.collection("users").doc(currentUser.id).set(currentUser, { merge: true });
 
             updateUserInterface();
+            await fetchAllUsersCache();
+            initRealtimeContacts();
             feedbackEl.textContent = "Modifiche salvate con successo!";
             feedbackEl.className = "text-xs text-center text-green-600 font-medium h-4";
             
             setTimeout(() => {
                 feedbackEl.textContent = "";
                 closeAccountSettings();
-                loadContacts();
             }, 1000);
         }
 
@@ -665,28 +670,41 @@
             }
         }
 
-        async function loadContacts() {
+        async function fetchAllUsersCache() {
+            const usersSnap = await db.collection("users").get();
+            allUsersCache = [];
+            usersSnap.forEach(doc => allUsersCache.push(doc.data()));
+        }
+
+        function initRealtimeContacts() {
+            if (contactsUnsubscribe) contactsUnsubscribe();
+
+            // Ascolta in tempo reale tutte le chat in cui l'utente corrente è partecipante
+            contactsUnsubscribe = db.collection("messages")
+                .where("participants", "array-contains", currentUser.id)
+                .onSnapshot((snapshot) => {
+                    renderContactsList(snapshot);
+                });
+        }
+
+        function renderContactsList(snapshot) {
             const listContainer = document.getElementById('contacts-list');
             const searchQuery = document.getElementById('search-input').value.trim().toLowerCase();
 
-            const usersSnap = await db.collection("users").get();
-            let users = [];
-            usersSnap.forEach(doc => users.push(doc.data()));
+            const chattedIds = new Set();
+            snapshot.forEach(doc => {
+                const data = doc.data();
+                if (data.participants) {
+                    const otherId = data.participants.find(id => id !== currentUser.id);
+                    if (otherId) chattedIds.add(otherId);
+                }
+            });
 
             let displayUsers = [];
             if (searchQuery) {
-                displayUsers = users.filter(u => u.id !== currentUser.id && (u.id.toLowerCase().includes(searchQuery) || u.username.toLowerCase().includes(searchQuery)));
+                displayUsers = allUsersCache.filter(u => u.id !== currentUser.id && (u.id.toLowerCase().includes(searchQuery) || u.username.toLowerCase().includes(searchQuery)));
             } else {
-                const messagesSnap = await db.collection("messages").get();
-                const chattedIds = new Set();
-                messagesSnap.forEach(doc => {
-                    const parts = doc.id.split('_');
-                    if (parts.includes(currentUser.id)) {
-                        const other = parts[1] === currentUser.id ? parts[2] : parts[1];
-                        chattedIds.add(other);
-                    }
-                });
-                displayUsers = users.filter(u => chattedIds.has(u.id));
+                displayUsers = allUsersCache.filter(u => chattedIds.has(u.id));
             }
 
             listContainer.innerHTML = '';
@@ -697,7 +715,7 @@
 
             displayUsers.forEach(user => {
                 const div = document.createElement('div');
-                div.className = `flex items-center gap-3 p-3 hover:bg-gray-50 cursor-pointer transition border-b border-gray-100`;
+                div.className = `flex items-center gap-3 p-3 hover:bg-gray-50 cursor-pointer transition border-b border-gray-100 ${activeContactId === user.id ? 'bg-gray-100' : ''}`;
                 div.onclick = () => selectContact(user.id);
                 
                 let avatarHTML = `<div class="w-12 h-12 rounded-full bg-green-700 text-white font-bold flex items-center justify-center shrink-0 overflow-hidden">${user.avatar}</div>`;
@@ -719,8 +737,15 @@
             lucide.createIcons();
         }
 
-        function filterContacts() {
-            loadContacts();
+        async function filterContacts() {
+            await fetchAllUsersCache();
+            // Ricostruisce la lista filtrata basandosi sui dati aggiornati
+            db.collection("messages")
+                .where("participants", "array-contains", currentUser.id)
+                .get()
+                .then((snapshot) => {
+                    renderContactsList(snapshot);
+                });
         }
 
         async function selectContact(id) {
@@ -744,6 +769,7 @@
 
             updateBlockButtonState();
             listenMessages();
+            renderContactsList({ forEach: () => {} }); // Aggiorna evidenziazione chat attiva
         }
 
         function getChatKey(id1, id2) {
@@ -804,11 +830,14 @@
                     text: text,
                     time: timeStr
                 });
-                transaction.set(msgRef, { messages: messages });
+                // Salviamo anche i partecipanti per permettere l'aggiornamento in tempo reale
+                transaction.set(msgRef, { 
+                    participants: [currentUser.id, activeContactId],
+                    messages: messages 
+                }, { merge: true });
             });
 
             input.value = '';
-            loadContacts();
         }
 
         function handleKeyPress(e) {
